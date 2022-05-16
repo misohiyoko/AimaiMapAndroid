@@ -39,11 +39,16 @@ class MainActivity : ComponentActivity() {
 @Preview
 fun HomeMenu(){
     Surface(color = MaterialTheme.colors.background) {
-        Row (horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-            ){
-            Text(TextsLang.getText("Destination"))
-            Icon(Icons.Filled.KeyboardArrowRight,"")
+        Card{
+            Column {
+                Row (horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                    ){
+                    Text(TextsLang.getText("Destination"))
+                    Icon(Icons.Filled.KeyboardArrowRight,"")
+                }
+
+            }
         }
     }
 }
