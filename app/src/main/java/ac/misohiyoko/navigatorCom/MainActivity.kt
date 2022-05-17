@@ -6,19 +6,21 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import ac.misohiyoko.navigatorCom.ui.theme.NavComTheme
+import androidx.compose.foundation.layout.*
 
-import androidx.compose.foundation.layout.Arrangement
-
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,23 +38,24 @@ class MainActivity : ComponentActivity() {
 
 
 @Composable
-@Preview
+@Preview(showBackground = true)
 fun HomeMenu(){
-    Surface(color = MaterialTheme.colors.background) {
-        Card{
-            Column {
-                Row (horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically
-                    ){
-                    Text(TextsLang.getText("Destination"))
-                    Icon(Icons.Filled.KeyboardArrowRight,"")
-                }
+    Surface(color = MaterialTheme.colors.background,modifier = Modifier.fillMaxWidth().fillMaxHeight()) {
 
+            Card(elevation = 2.dp, modifier = Modifier.padding(16.dp).fillMaxWidth().aspectRatio(1.4f)){
+                Column {
+                    Row (horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
+                        ){
+                        Text(TextsLang.getText("Destination"), fontSize = 25.sp, textAlign = TextAlign.Center, modifier = Modifier.padding(10.dp))
+                        Icon(Icons.Filled.Lock,"")
+                    }
+
+                }
             }
-        }
+
     }
 }
-
 
 
 @Composable
