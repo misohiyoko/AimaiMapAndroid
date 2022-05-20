@@ -2,6 +2,8 @@ package ac.misohiyoko.navigatorCom
 
 import ac.misohiyoko.navigatorCom.ui.theme.Gray400
 import ac.misohiyoko.navigatorCom.ui.theme.Gray700
+import android.Manifest
+import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -24,27 +26,69 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.HorizontalAlignmentLine
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
+
 
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        var isNavActive:Boolean = false ///あとでサービスの存在確認を入れる
         setContent {
-            mainScaffold()
+            mainScaffold(isNavActive){value ->
+                isNavActive = value
+            }
+        }
+    }
+    private fun requestPermission() {
+        val permissionAccessCoarseLocationApproved =
+            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) ==
+                    PackageManager.PERMISSION_GRANTED &&
+                    ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                    PackageManager.PERMISSION_GRANTED
+
+        if (permissionAccessCoarseLocationApproved) {
+            val backgroundLocationPermissionApproved = ActivityCompat
+                .checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) ==
+                    PackageManager.PERMISSION_GRANTED
+
+            if (backgroundLocationPermissionApproved) {
+                // フォアグラウンドとバックグランドのバーミッションがある
+            } else {
+                // フォアグラウンドのみOKなので、バックグラウンドの許可を求める
+                ActivityCompat.requestPermissions(this,
+                    arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                    PERMISSION_REQUEST_CODE
+                )
+            }
+        } else {
+            // 位置情報の権限が無いため、許可を求める
+            ActivityCompat.requestPermissions(this,
+                arrayOf(
+                    Manifest.permission.ACCESS_COARSE_LOCATION,
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                ),
+                PERMISSION_REQUEST_CODE
+            )
         }
     }
 }
 
+
+
+
 @Preview
 @Composable
-fun mainScaffold(isNavStarted:Boolean, buttonOnClick:()->Unit){
+fun mainScaffold(isNavStartedFirst: Boolean = false,buttonOnClick:(Boolean)->Unit = {}){
     var selectedMenu = rememberSaveable { mutableStateOf("Home") }
-
+    var isNavStarted = rememberSaveable { mutableStateOf(isNavStartedFirst) }
     Scaffold (
         bottomBar = {
             BottomBar(selectedMenu.value){
@@ -53,8 +97,9 @@ fun mainScaffold(isNavStarted:Boolean, buttonOnClick:()->Unit){
         }
     ){
         if(selectedMenu.value == "Home"){
-            HomeMenu(isNavStarted = isNavStarted){
-                buttonOnClick
+            HomeMenu(isNavStarted = isNavStarted.value){
+                isNavStarted.value = !isNavStarted.value
+                buttonOnClick(isNavStarted.value)
             }
         }else{
 
@@ -78,7 +123,7 @@ fun HomeMenu(destName:String = "ちえりあ", destAddress:String = "札幌市�
                             Column {
 
                                     Text(
-                                        text = "目的地",
+                                        text = stringResource(R.string.destination),
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 30.sp,
                                         textAlign = TextAlign.Left,
@@ -119,7 +164,7 @@ fun HomeMenu(destName:String = "ちえりあ", destAddress:String = "札幌市�
 
 
                     ){
-                        if(isNavStarted){
+                        if(!isNavStarted){
                             Icon(Icons.Filled.PlayArrow,"")
                             Text("ナビを開始")
                         }else{
