@@ -7,6 +7,7 @@ import android.content.pm.PackageManager
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.*
@@ -36,7 +37,9 @@ import androidx.core.app.ActivityCompat
 
 
 class MainActivity : ComponentActivity() {
-
+    companion object {
+        private const val PERMISSION_REQUEST_CODE = 1234
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         var isNavActive:Boolean = false ///あとでサービスの存在確認を入れる
@@ -45,39 +48,31 @@ class MainActivity : ComponentActivity() {
                 isNavActive = value
             }
         }
+        requestPermission()
     }
     private fun requestPermission() {
-        val permissionAccessCoarseLocationApproved =
-            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) ==
-                    PackageManager.PERMISSION_GRANTED &&
-                    ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
-                    PackageManager.PERMISSION_GRANTED
+        val locationPermissionRequest = registerForActivityResult(
+            ActivityResultContracts.RequestMultiplePermissions()
+        ) { permissions ->
+            when {
 
-        if (permissionAccessCoarseLocationApproved) {
-            val backgroundLocationPermissionApproved = ActivityCompat
-                .checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION) ==
-                    PackageManager.PERMISSION_GRANTED
+                permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true -> {
+                    // Precise location access granted.
+                }
+                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true -> {
+                    // Only approximate location access granted.
 
-            if (backgroundLocationPermissionApproved) {
-                // フォアグラウンドとバックグランドのバーミッションがある
-            } else {
-                // フォアグラウンドのみOKなので、バックグラウンドの許可を求める
-                ActivityCompat.requestPermissions(this,
-                    arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
-                    PERMISSION_REQUEST_CODE
-                )
+                } else -> {
+                    // No location access granted.
+                }
             }
-        } else {
-            // 位置情報の権限が無いため、許可を求める
-            ActivityCompat.requestPermissions(this,
-                arrayOf(
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_BACKGROUND_LOCATION
-                ),
-                PERMISSION_REQUEST_CODE
-            )
         }
+        locationPermissionRequest.launch(arrayOf(
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ))
+
+
     }
 }
 
