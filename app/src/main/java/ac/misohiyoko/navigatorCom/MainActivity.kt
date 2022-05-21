@@ -8,6 +8,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.*
@@ -36,7 +37,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     companion object {
         private const val PERMISSION_REQUEST_CODE = 1234
     }
@@ -58,19 +59,30 @@ class MainActivity : ComponentActivity() {
 
                 permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true -> {
                     // Precise location access granted.
+                    val backGroundGPSApproved = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                    if(backGroundGPSApproved == PackageManager.PERMISSION_GRANTED){
+
+                    }else{
+                        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                        PERMISSION_REQUEST_CODE)
+                    }
                 }
                 permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true -> {
                     // Only approximate location access granted.
 
-                } else -> {
+                }
+                else -> {
                     // No location access granted.
+
                 }
             }
         }
         locationPermissionRequest.launch(arrayOf(
             Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+
         ))
+
 
 
     }
