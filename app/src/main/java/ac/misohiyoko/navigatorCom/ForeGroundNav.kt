@@ -1,17 +1,21 @@
 package ac.misohiyoko.navigatorCom
 
+import android.Manifest
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.location.Location
 import android.os.IBinder
+import android.os.Looper
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
-import com.google.android.gms.*
-
+import com.google.android.gms.location.LocationRequest
+import android.util.Log
 class ForeGroundNav : Service(){
     companion object{
         const val NOTIFICATION_ID = 10
@@ -28,9 +32,8 @@ class ForeGroundNav : Service(){
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(p0: LocationResult) {
-                p0?:return
                 super.onLocationResult(p0)
-                p0.lastLocation.also {it ->
+                p0.lastLocation.also {
                     ProcessGeolocation(it);
                 }
             }
@@ -48,16 +51,62 @@ class ForeGroundNav : Service(){
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()
 
-        startForeground(1, notification)
+        startForeground(NOTIFICATION_ID, notification)
+
+        startLocationUpdate()
 
         return START_STICKY
     }
 
     override fun onBind(p0: Intent?): IBinder? {
-        throw UnsupportedOperationException("Not yet Implemented")
+        return null
+    }
+
+
+
+    private fun startLocationUpdate(){
+        val locationRequest = createLocationRequest() ?: return
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
+    }
+
+    override fun stopService(name: Intent?): Boolean {
+        return super.stopService(name)
+        stopLocationUpdate()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopLocationUpdate()
+        stopSelf()
+    }
+    private fun stopLocationUpdate(){
+        fusedLocationClient.removeLocationUpdates(locationCallback)
+    }
+
+    private fun createLocationRequest() : LocationRequest?{
+        val locationRequest = LocationRequest.create()?.apply {
+            interval = 5000
+            fastestInterval = 2500
+            priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        }
+        return locationRequest
     }
 
     private fun ProcessGeolocation(location : Location){
-
+        Log.d(this.javaClass.name, "${location.latitude} : latitude ${location.longitude}: longitude")
     }
 }
