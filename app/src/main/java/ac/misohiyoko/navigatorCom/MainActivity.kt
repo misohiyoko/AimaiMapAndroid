@@ -3,7 +3,12 @@ package ac.misohiyoko.navigatorCom
 import ac.misohiyoko.navigatorCom.ui.theme.Gray400
 import ac.misohiyoko.navigatorCom.ui.theme.Gray700
 import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -47,9 +52,20 @@ class MainActivity : AppCompatActivity() {
         setContent {
             mainScaffold(isNavActive){value ->
                 isNavActive = value
+                if(isNavActive){
+                    val intent = Intent(this, ForeGroundNav::class.java)
+
+                    startService(intent)
+                }else{
+                    val intent = Intent(this, ForeGroundNav::class.java)
+
+                    stopService(intent)
+                }
             }
         }
         requestPermission()
+
+        createNotificationChannel()
     }
     private fun requestPermission() {
         val locationPermissionRequest = registerForActivityResult(
@@ -88,7 +104,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun createNotificationChannel(){
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+            val channel = NotificationChannel(
+                ForeGroundNav.CHANNEL_ID,
+                "お知らせ",
+                NotificationManager.IMPORTANCE_HIGH).apply {
+                    description = "通知"
+            }
+            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
 
+        }
     }
 }
 

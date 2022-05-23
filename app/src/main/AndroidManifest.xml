@@ -24,7 +24,7 @@
             </intent-filter>
         </activity>
         
-
+        <service android:name=".ForeGroundNav"></service>
     </application>
 
 </manifest>
