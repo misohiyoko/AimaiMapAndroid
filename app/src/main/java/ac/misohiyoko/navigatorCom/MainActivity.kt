@@ -45,16 +45,22 @@ import androidx.core.app.ActivityCompat
 class MainActivity : AppCompatActivity() {
     companion object {
         private const val PERMISSION_REQUEST_CODE = 1234
+        public const val INTENT_LATITUDE = "latitude"
+        public const val INTENT_LONGITUDE = "longitude"
     }
+
+    private var destination:Destination = Destination(0F,0F,"")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        var isNavActive:Boolean = false ///あとでサービスの存在確認を入れる
+        var isNavActive:Boolean = ForeGroundNav.isActive(this)
         setContent {
             mainScaffold(isNavActive){value ->
                 isNavActive = value
                 if(isNavActive){
                     val intent = Intent(this, ForeGroundNav::class.java)
-
+                    intent.putExtra(INTENT_LATITUDE, destination.latitude)
+                    intent.putExtra(INTENT_LONGITUDE, destination.longitude)
                     startService(intent)
                 }else{
                     val intent = Intent(this, ForeGroundNav::class.java)
