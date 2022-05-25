@@ -36,8 +36,7 @@ class ForeGroundNav : Service(){
     }
     private lateinit var fusedLocationClient:FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
-    private lateinit var dataDumpStream:FileOutputStream;
-    private lateinit var printWriter:PrintWriter;
+    private lateinit var locationProfile:GPSDataDump
     private val localBroadcastManager by lazy {LocalBroadcastManager.getInstance(applicationContext)}
     private val broadcastReceiver = object : BroadcastReceiver(){
         override fun onReceive(p0: Context?, p1: Intent?) {
@@ -46,6 +45,7 @@ class ForeGroundNav : Service(){
     }
     override fun onCreate() {
         super.onCreate()
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         localBroadcastManager.registerReceiver(broadcastReceiver, IntentFilter(ACTION_IS_ACTIVE))
     }
@@ -60,9 +60,16 @@ class ForeGroundNav : Service(){
                     processGeolocationData(it);
                 }
             }
+
         }
-        dataDumpStream = openFileOutput(getNowDate(), MODE_APPEND)
-        printWriter = PrintWriter(OutputStreamWriter(dataDumpStream,"UTF-8"))
+        val dest:String
+        if (intent != null) {
+            dest = intent.getStringExtra(MainActivity.INTENT_DEST) ?: return START_NOT_STICKY
+        }else{
+            return START_NOT_STICKY
+        }
+        locationProfile = GPSDataDump(dest)
+
 
         val pendingIntent: PendingIntent =
             Intent(this, MainActivity::class.java).let {notificationIntent ->
@@ -110,6 +117,7 @@ class ForeGroundNav : Service(){
 
     override fun stopService(name: Intent?): Boolean {
         stopLocationUpdate()
+
         return super.stopService(name)
 
     }
@@ -123,6 +131,12 @@ class ForeGroundNav : Service(){
     private fun stopLocationUpdate(){
 
         fusedLocationClient.removeLocationUpdates(locationCallback)
+
+        this.openFileOutput(System.currentTimeMillis().toString() + ".csv", Context.MODE_PRIVATE).use {
+            val textToBeWrite = locationProfile.writeStringCSV()
+            val bytesToBeWrite = textToBeWrite.toByteArray()
+            it.write(bytesToBeWrite)
+        }
     }
 
     private fun createLocationRequest() : LocationRequest?{
@@ -136,7 +150,7 @@ class ForeGroundNav : Service(){
 
     private fun processGeolocationData(location : Location){
         Log.d(this.javaClass.name, "${location.latitude} : latitude ${location.longitude}: longitude")
-        val textToBeWrite = "${location.latitude} : latitude ${location.longitude}: longitude"
-        dataDumpStream.write(textToBeWrite.toByteArray())
+        //val textToBeWrite = "${location.latitude} : latitude ${location.longitude}: longitude"
+        locationProfile.locationList.add(location)
     }
 }

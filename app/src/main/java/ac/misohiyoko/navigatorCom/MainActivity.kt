@@ -47,6 +47,7 @@ class MainActivity : AppCompatActivity() {
         private const val PERMISSION_REQUEST_CODE = 1234
         public const val INTENT_LATITUDE = "latitude"
         public const val INTENT_LONGITUDE = "longitude"
+        public const val INTENT_DEST= "destination"
     }
 
     private var destination:Destination = Destination(0F,0F,"")
@@ -54,6 +55,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         var isNavActive:Boolean = ForeGroundNav.isActive(this)
+
         setContent {
             mainScaffold(isNavActive){value ->
                 isNavActive = value
@@ -61,6 +63,7 @@ class MainActivity : AppCompatActivity() {
                     val intent = Intent(this, ForeGroundNav::class.java)
                     intent.putExtra(INTENT_LATITUDE, destination.latitude)
                     intent.putExtra(INTENT_LONGITUDE, destination.longitude)
+                    intent.putExtra(INTENT_DEST, destination.name)
                     startService(intent)
                 }else{
                     val intent = Intent(this, ForeGroundNav::class.java)
