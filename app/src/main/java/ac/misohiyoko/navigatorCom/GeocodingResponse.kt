@@ -10,7 +10,7 @@ data class GeocodingResponse(
     val results: List<Result>,
     @SerialName("status")
     val status: String
-) {
+) : ISerializableDummy{
     @Serializable
     data class Result(
         @SerialName("address_components")

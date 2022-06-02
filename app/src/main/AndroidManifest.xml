@@ -23,8 +23,9 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        
-        <service android:name=".ForeGroundNav"></service>
+        <meta-data android:value="${MAPS_API_KEY}" android:name="GoogleAPI"/>
+
+        <service android:name=".ForeGroundNav"/>
     </application>
 
 </manifest>
