@@ -9,9 +9,11 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.clickable
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.*
@@ -22,10 +24,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -37,6 +36,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
@@ -148,7 +148,7 @@ fun mainScaffold(isNavStartedFirst: Boolean = false,buttonOnClick:(Boolean)->Uni
                 buttonOnClick(isNavStarted.value)
             }
         }else{
-
+            MapMenu()
         }
     }
 }
@@ -225,20 +225,36 @@ fun HomeMenu(destName:String = "ちえりあ", destAddress:String = "札幌市�
 
 
 }
-
+@Preview
 @Composable
 fun MapMenu(){
-    var text = remember { mutableStateOf(TextFieldValue("")) }
-    TextField(
+    val text = remember { mutableStateOf(TextFieldValue("")) }
+    val isSearchEnable = remember { mutableStateOf(true) }
+    OutlinedTextField(
         value = text.value,
         onValueChange = {
+            Log.i("","OnInput")
             text.value = it
+
         },
+        enabled = isSearchEnable.value,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
         label = { Text(text = stringResource(R.string.destination)) },
-        placeholder = { Text(text = stringResource(R.string.write_your_destination)) }
+        placeholder = { Text(text = stringResource(R.string.write_your_destination)) },
+        leadingIcon = {
+            Icon(imageVector = Icons.Filled.Search,
+                contentDescription = "",
+                modifier = Modifier.clickable {
+
+                }
+            )
+        }
+
     )
+
 }
+
+
 
 
 @Composable
