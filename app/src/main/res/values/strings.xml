@@ -3,4 +3,5 @@
     <string name="destination">Destination</string>
     <string name="notification_title">Navigating</string>
     <string name="notification_text">Navigating your destination</string>
+    <string name="write_your_destination">Write your destination</string>
 </resources>

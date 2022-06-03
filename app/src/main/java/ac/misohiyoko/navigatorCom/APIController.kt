@@ -1,13 +1,17 @@
 package ac.misohiyoko.navigatorCom
 
+import android.location.Location
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class APIController {
     companion object{
@@ -24,16 +28,29 @@ class APIController {
             install(Logging)
 
         }
-
-        val response = client.get(url)
+        val response:HttpResponse;
+        withContext(Dispatchers.IO) {
+            response = client.get(url)
+        }
         return response.body()
 
     }
-    public suspend fun getGeocodingData(name:String){
-        val urlString = "https://maps.googleapis.com/maps/api/geocode/json?"
-        var urlBuilder = URLBuilder(urlString)
+    private suspend fun getGeocodingData(name: String): GeocodingResponse {
+        val urlString = "https://maps.googleapis.com/maps/api/geocode/json"
+        val urlBuilder = URLBuilder(urlString)
         urlBuilder.parameters.append("address", name)
-        urlBuilder.parameters.append("key", )
+        urlBuilder.parameters.append("key", GoogleApiKey)
+        val url = Url(urlBuilder)
+        return getJson(url)
+    }
+
+    public suspend fun getGeocodingResults(name: String):List<NamedLocation>{
+        val geocodingResponse = getGeocodingData(name)
+        val locations = geocodingResponse.results.map {
+            NamedLocation(latitude = it.geometry.location.lat, longitude = it.geometry.location.lng, name = it.placeId)
+        }
+        return locations
+
     }
 
 }

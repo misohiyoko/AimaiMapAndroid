@@ -4,4 +4,5 @@
     <string name="destination">目的地</string>
     <string name="notification_title">ナビゲーション中</string>
     <string name="notification_text">目的地を案内中</string>
+    <string name="write_your_destination">目的地を入力</string>
 </resources>

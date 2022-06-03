@@ -1,6 +1,5 @@
 package ac.misohiyoko.navigatorCom
 
-import ac.misohiyoko.navigatorCom.ui.theme.Gray400
 import ac.misohiyoko.navigatorCom.ui.theme.Gray700
 import android.Manifest
 import android.app.NotificationChannel
@@ -10,14 +9,13 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.remember
+import androidx.compose.foundation.text.KeyboardOptions
 
 
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -29,12 +27,14 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity() {
         public const val INTENT_DEST= "destination"
     }
 
-    private var destination:Destination = Destination(0F,0F,"")
+    private var namedLocation:NamedLocation = NamedLocation(0.0, 0.0,"")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,9 +61,9 @@ class MainActivity : AppCompatActivity() {
                 isNavActive = value
                 if(isNavActive){
                     val intent = Intent(this, ForeGroundNav::class.java)
-                    intent.putExtra(INTENT_LATITUDE, destination.latitude)
-                    intent.putExtra(INTENT_LONGITUDE, destination.longitude)
-                    intent.putExtra(INTENT_DEST, destination.name)
+                    intent.putExtra(INTENT_LATITUDE, namedLocation.latitude)
+                    intent.putExtra(INTENT_LONGITUDE, namedLocation.longitude)
+                    intent.putExtra(INTENT_DEST, namedLocation.name)
                     startService(intent)
                 }else{
                     val intent = Intent(this, ForeGroundNav::class.java)
@@ -224,6 +224,20 @@ fun HomeMenu(destName:String = "ちえりあ", destAddress:String = "札幌市�
             }
 
 
+}
+
+@Composable
+fun MapMenu(){
+    var text = remember { mutableStateOf(TextFieldValue("")) }
+    TextField(
+        value = text.value,
+        onValueChange = {
+            text.value = it
+        },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+        label = { Text(text = stringResource(R.string.destination)) },
+        placeholder = { Text(text = stringResource(R.string.write_your_destination)) }
+    )
 }
 
 
