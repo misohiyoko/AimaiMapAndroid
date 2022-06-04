@@ -23,6 +23,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 import java.io.PrintWriter
+import java.util.Locale
 
 class ForeGroundNav : Service(){
     companion object{
@@ -152,5 +153,9 @@ class ForeGroundNav : Service(){
         Log.d(this.javaClass.name, "${location.latitude} : latitude ${location.longitude}: longitude")
         //val textToBeWrite = "${location.latitude} : latitude ${location.longitude}: longitude"
         locationProfile.locationList.add(location)
+    }
+
+    public fun getLastLocation():Location{
+        return locationProfile.locationList.last()
     }
 }

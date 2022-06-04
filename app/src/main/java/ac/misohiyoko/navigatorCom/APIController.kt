@@ -14,11 +14,11 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class APIController {
-    companion object {
-        const val GoogleApiKey = "AIzaSyCV_MLSJQRJTR4O8rG2F7bTQL8-vtKCEj4"
+object APIController {
 
-    }
+    const val GoogleApiKey = "AIzaSyCV_MLSJQRJTR4O8rG2F7bTQL8-vtKCEj4"
+
+
 
     private suspend inline fun <reified T : ISerializableDummy> getJson(url: Url): T {
         val client = HttpClient(CIO) {

@@ -1,5 +1,6 @@
 package ac.misohiyoko.navigatorCom
 
+
 import ac.misohiyoko.navigatorCom.ui.theme.Gray700
 import android.Manifest
 import android.app.NotificationChannel
@@ -14,17 +15,13 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.clickable
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
-
-
 import androidx.compose.foundation.text.selection.SelectionContainer
-
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,10 +34,15 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.rememberCameraPositionState
+import java.time.Month
 
 
 class MainActivity : AppCompatActivity() {
@@ -231,34 +233,53 @@ fun HomeMenu(destName:String = "ちえりあ", destAddress:String = "札幌市�
 fun MapMenu(){
     val text = remember { mutableStateOf(TextFieldValue("")) }
     val isSearchEnable = remember { mutableStateOf(true) }
-
-    if(isSearchEnable.value){
-        LaunchedEffect(Unit){
-
+    val destinationList = remember{ mutableStateOf( listOf<NamedLocation>()) }
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(LatLng(1.35, 103.87), 10f)
+    }
+    LaunchedEffect(isSearchEnable.value){
+        if(!isSearchEnable.value){
+            destinationList.value = APIController.getGeocodingResults(text.value.text)
+            isSearchEnable.value = true
         }
     }
-    OutlinedTextField(
-        value = text.value,
-        onValueChange = {
-            Log.i("","OnInput")
-            text.value = it
+    Box(modifier = Modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center
+        ){
+        OutlinedTextField(
+            value = text.value,
+            onValueChange = {
+                Log.i("","OnInput")
+                text.value = it
 
-        },
-        enabled = isSearchEnable.value,
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-        label = { Text(text = stringResource(R.string.destination)) },
-        placeholder = { Text(text = stringResource(R.string.write_your_destination)) },
-        leadingIcon = {
-            Icon(imageVector = Icons.Filled.Search,
-                contentDescription = "",
-                modifier = Modifier.clickable {
-                    isSearchEnable.value = false
+            },
+            enabled = isSearchEnable.value,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+            label = { Text(text = stringResource(R.string.destination)) },
+            placeholder = { Text(text = stringResource(R.string.write_your_destination)) },
+            leadingIcon = {
+                Icon(imageVector = Icons.Filled.Search,
+                    contentDescription = "",
+                    modifier = Modifier.clickable {
+                        isSearchEnable.value = false
 
-                }
-            )
-        }
+                    }
+                )
+            },
+            modifier = Modifier.padding(20.dp)
 
-    )
+
+        )
+    }
+    GoogleMap(
+        modifier = Modifier.fillMaxSize(),
+        cameraPositionState = cameraPositionState
+    ){
+
+
+
+    }
+
 
 }
 
