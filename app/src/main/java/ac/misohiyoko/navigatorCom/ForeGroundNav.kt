@@ -1,6 +1,7 @@
 package ac.misohiyoko.navigatorCom
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
@@ -97,6 +98,7 @@ class ForeGroundNav : Service(){
 
 
 
+    //@SuppressLint("MissingPermission")
     private fun startLocationUpdate(){
         val locationRequest = createLocationRequest() ?: return
         if (ActivityCompat.checkSelfPermission(
@@ -114,6 +116,7 @@ class ForeGroundNav : Service(){
             locationCallback,
             Looper.getMainLooper()
         )
+
     }
 
     override fun stopService(name: Intent?): Boolean {
