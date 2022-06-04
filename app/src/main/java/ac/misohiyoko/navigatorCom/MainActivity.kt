@@ -25,6 +25,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -230,6 +231,12 @@ fun HomeMenu(destName:String = "ちえりあ", destAddress:String = "札幌市�
 fun MapMenu(){
     val text = remember { mutableStateOf(TextFieldValue("")) }
     val isSearchEnable = remember { mutableStateOf(true) }
+
+    if(isSearchEnable.value){
+        LaunchedEffect(Unit){
+
+        }
+    }
     OutlinedTextField(
         value = text.value,
         onValueChange = {
@@ -245,6 +252,7 @@ fun MapMenu(){
             Icon(imageVector = Icons.Filled.Search,
                 contentDescription = "",
                 modifier = Modifier.clickable {
+                    isSearchEnable.value = false
 
                 }
             )

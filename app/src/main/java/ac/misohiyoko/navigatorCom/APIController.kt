@@ -3,6 +3,7 @@ package ac.misohiyoko.navigatorCom
 import android.location.Location
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.call.body
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
@@ -14,7 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class APIController {
-    companion object{
+    companion object {
         const val GoogleApiKey = "AIzaSyCV_MLSJQRJTR4O8rG2F7bTQL8-vtKCEj4"
 
     }
@@ -28,13 +29,14 @@ class APIController {
             install(Logging)
 
         }
-        val response:HttpResponse;
+        val response: HttpResponse;
         withContext(Dispatchers.IO) {
             response = client.get(url)
         }
         return response.body()
 
     }
+
     private suspend fun getGeocodingData(name: String): GeocodingResponse {
         val urlString = "https://maps.googleapis.com/maps/api/geocode/json"
         val urlBuilder = URLBuilder(urlString)
@@ -44,7 +46,7 @@ class APIController {
         return getJson(url)
     }
 
-    public suspend fun getGeocodingResults(name: String):List<NamedLocation>{
+    public suspend fun getGeocodingResults(name: String): List<NamedLocation> {
         val geocodingResponse = getGeocodingData(name)
         val locations = geocodingResponse.results.map {
             NamedLocation(latitude = it.geometry.location.lat, longitude = it.geometry.location.lng, name = it.placeId)
