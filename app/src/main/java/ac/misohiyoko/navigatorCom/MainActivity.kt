@@ -133,7 +133,7 @@ class MainActivity : AppCompatActivity() {
 
 
 
-@Preview
+@Preview(showBackground = true, showSystemUi=true)
 @Composable
 fun mainScaffold(isNavStartedFirst: Boolean = false,buttonOnClick:(Boolean)->Unit = {}){
     var selectedMenu = rememberSaveable { mutableStateOf("Home") }
@@ -228,7 +228,7 @@ fun HomeMenu(destName:String = "ちえりあ", destAddress:String = "札幌市�
 
 
 }
-@Preview
+
 @Composable
 fun MapMenu(){
     val text = remember { mutableStateOf(TextFieldValue("")) }
