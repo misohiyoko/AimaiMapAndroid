@@ -229,6 +229,7 @@ fun HomeMenu(destName:String = "ちえりあ", destAddress:String = "札幌市�
 
 }
 
+@Preview(showBackground = true, showSystemUi=true)
 @Composable
 fun MapMenu(){
     val text = remember { mutableStateOf(TextFieldValue("")) }
