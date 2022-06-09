@@ -1,9 +1,7 @@
 package ac.misohiyoko.navigatorCom
 
-import android.location.Location
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.call.body
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
@@ -21,7 +19,7 @@ object APIController {
 
 
 
-    private suspend inline fun <reified T : ISerializableDummy> getJson(url: Url): T {
+    private suspend inline fun getJson(url: Url): Result<HttpResponse> {
         val client = HttpClient(CIO) {
             expectSuccess = true
             install(ContentNegotiation) {
@@ -32,34 +30,43 @@ object APIController {
             install(Logging)
 
         }
-        val response: HttpResponse;
-        withContext(Dispatchers.IO) {
-            response = client.get(url)
+        val response: Result<HttpResponse> = kotlin.runCatching {
+            withContext(Dispatchers.IO) {
+                client.get(url)
+            }
         }
-        return response.body()
+
+
+        return response
 
     }
 
-    private suspend fun getGeocodingData(name: String): GeocodingResponse {
+    private suspend fun getGeocodingData(name: String): Result<HttpResponse> {
         val urlString = "https://maps.googleapis.com/maps/api/geocode/json"
         val urlBuilder = URLBuilder(urlString)
         urlBuilder.parameters.append("address", name)
         urlBuilder.parameters.append("key", GoogleApiKey)
         val url = Url(urlBuilder)
+
         return getJson(url)
     }
 
     public suspend fun getGeocodingResults(name: String): List<NamedLocation> {
-        try {
-            val geocodingResponse = getGeocodingData(name)
-        }catch (){
 
-        }
+        val geocodingResponse = getGeocodingData(name)
 
-        val locations = geocodingResponse.results.map {
-            NamedLocation(latitude = it.geometry.location.lat, longitude = it.geometry.location.lng, name = it.placeId)
-        }
-        return locations
+
+        val locationsNullable =
+            geocodingResponse.getOrNull()?.body<GeocodingResponse>()?.results?.map {
+                NamedLocation(
+                    latitude = it.geometry.location.lat,
+                    longitude = it.geometry.location.lng,
+                    name = it.placeId
+                )
+            }
+
+
+        return locationsNullable ?: listOf<NamedLocation>()
 
     }
 
