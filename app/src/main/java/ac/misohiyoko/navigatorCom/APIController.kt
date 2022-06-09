@@ -50,7 +50,12 @@ object APIController {
     }
 
     public suspend fun getGeocodingResults(name: String): List<NamedLocation> {
-        val geocodingResponse = getGeocodingData(name)
+        try {
+            val geocodingResponse = getGeocodingData(name)
+        }catch (){
+
+        }
+
         val locations = geocodingResponse.results.map {
             NamedLocation(latitude = it.geometry.location.lat, longitude = it.geometry.location.lng, name = it.placeId)
         }
