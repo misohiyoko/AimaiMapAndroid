@@ -14,6 +14,7 @@ import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
@@ -28,6 +29,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.modifier.modifierLocalConsumer
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -38,9 +44,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import java.time.Month
 
@@ -162,12 +172,17 @@ fun HomeMenu(destName:String = "ちえりあ", destAddress:String = "札幌市�
 
 
 
-            Card(elevation = 5.dp, modifier = Modifier.padding(16.dp).fillMaxWidth().height(IntrinsicSize.Min)){
+            Card(elevation = 5.dp, modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min)){
                 Column() {
                     Row (horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically
                         ){
-                        Icon(Icons.Filled.LocationOn,"", modifier = Modifier.wrapContentHeight().padding(2.dp))
+                        Icon(Icons.Filled.LocationOn,"", modifier = Modifier
+                            .wrapContentHeight()
+                            .padding(2.dp))
                         SelectionContainer {
                             Column {
 
@@ -207,7 +222,9 @@ fun HomeMenu(destName:String = "ちえりあ", destAddress:String = "札幌市�
 
                             buttonOnClick()
                         },
-                        modifier = Modifier.padding(10.dp).align(alignment = Alignment.End),
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .align(alignment = Alignment.End),
 
 
 
@@ -229,59 +246,96 @@ fun HomeMenu(destName:String = "ちえりあ", destAddress:String = "札幌市�
 
 }
 
+///MapMenu
 @Preview(showBackground = true, showSystemUi=true)
 @Composable
 fun MapMenu(){
+    ///text
     val text = remember { mutableStateOf(TextFieldValue("")) }
+    ///geocodingAPI running
     val isSearchEnable = remember { mutableStateOf(true) }
-    val destinationList = remember{ mutableStateOf( listOf<NamedLocation>()) }
+    /// destination result
+    val destinationList = rememberSaveable{ mutableStateOf( listOf<NamedLocation>()) }
+    /// Google map camera
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(LatLng(1.35, 103.87), 10f)
     }
+    /// after Searched
     LaunchedEffect(isSearchEnable.value){
         if(!isSearchEnable.value){
             destinationList.value = APIController.getGeocodingResults(text.value.text)
+            if(destinationList.value.count() > 1){
+                val latLngBounds = NamedLocation.getBounds(destinationList.value)
+                cameraPositionState.animate(CameraUpdateFactory.newLatLngBounds(latLngBounds, 10))
+
+            }else if(destinationList.value.isNotEmpty()){
+                cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(destinationList.value[0].getLatLng(),16f))
+            }
             isSearchEnable.value = true
         }
     }
-    Box(modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.Center
-        ){
-        OutlinedTextField(
-            value = text.value,
-            onValueChange = {
-                Log.i("","OnInput")
-                text.value = it
+    Column {
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            OutlinedTextField(
+                value = text.value,
+                onValueChange = {
+                    Log.i("", "OnInput")
+                    text.value = it
 
-            },
-            enabled = isSearchEnable.value,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-            label = { Text(text = stringResource(R.string.destination)) },
-            placeholder = { Text(text = stringResource(R.string.write_your_destination)) },
-            leadingIcon = {
-                Icon(imageVector = Icons.Filled.Search,
-                    contentDescription = "",
-                    modifier = Modifier.clickable {
-                        isSearchEnable.value = false
+                },
+                enabled = isSearchEnable.value,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                label = { Text(text = stringResource(R.string.destination)) },
+                placeholder = { Text(text = stringResource(R.string.write_your_destination)) },
+                leadingIcon = {
+                    Icon(imageVector = Icons.Filled.Search,
+                        contentDescription = "",
+                        modifier = Modifier.clickable {
+                            isSearchEnable.value = false
 
+                        }
+                    )
+                },
+                modifier = Modifier.padding(20.dp)
+
+
+            )
+        }
+        if(!LocalInspectionMode.current){
+            Box(modifier = Modifier
+                .fillMaxSize()
+                .padding(30.dp)
+                .clip(RectangleShape)){
+                GoogleMap(
+                    modifier = Modifier.fillMaxSize(),
+                    cameraPositionState = cameraPositionState
+                ) {
+                    destinationList.value.forEach {
+                        Marker(
+                            state = MarkerState(position = it.getLatLng()),
+                            title = it.name
+                        )
                     }
-                )
-            },
-            modifier = Modifier.padding(20.dp)
 
 
-        )
+                }
+            }
+        }else{
+
+                Box(modifier = Modifier
+                    .fillMaxSize()
+                    .padding(30.dp)
+                    .clip(RectangleShape)
+                    .background(Color.Red))
+
+
+        }
+
+
     }
-    GoogleMap(
-        modifier = Modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState
-    ){
-
-
-
-    }
-
-
 }
 
 

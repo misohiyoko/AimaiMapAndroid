@@ -13,6 +13,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 
 object APIController {
 
@@ -24,7 +25,9 @@ object APIController {
         val client = HttpClient(CIO) {
             expectSuccess = true
             install(ContentNegotiation) {
-                json()
+                json(Json{
+                    ignoreUnknownKeys = true
+                })
             }
             install(Logging)
 
