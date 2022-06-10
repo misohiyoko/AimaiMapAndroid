@@ -348,6 +348,7 @@ fun MapMenu(markerOnClick:(NamedLocation)->Unit = {}){
                             state = MarkerState(position = namedLocation.getLatLng()),
                             title = namedLocation.name,
                             onClick = {
+                                ///markerをクリックして目的地に指定
                                 markerOnClick(NamedLocation(it))
                                 return@Marker true
                             }
