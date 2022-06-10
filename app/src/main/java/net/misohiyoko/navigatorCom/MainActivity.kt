@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.*
@@ -32,9 +33,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -60,22 +63,28 @@ class MainActivity : AppCompatActivity() {
         public const val INTENT_DEST= "destination"
     }
 
-    private var namedLocation:NamedLocation = NamedLocation(0.0, 0.0,"")
+    private var destinationNamed:NamedLocation = NamedLocation(0.0, 0.0,"")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         var isNavActive:Boolean = ForeGroundNav.isActive(this)
 
         setContent {
-            mainScaffold(isNavActive){value ->
+            ///Launch compose
+            MainScaffold(isNavActive,{
+                destinationNamed = it
+                Log.d("markerOnClick",destinationNamed.toString())
+            }){value ->
                 isNavActive = value
                 if(isNavActive){
+                    ///ナビ開始時Service発行
                     val intent = Intent(this, ForeGroundNav::class.java)
-                    intent.putExtra(INTENT_LATITUDE, namedLocation.latitude)
-                    intent.putExtra(INTENT_LONGITUDE, namedLocation.longitude)
-                    intent.putExtra(INTENT_DEST, namedLocation.name)
+                    intent.putExtra(INTENT_LATITUDE, destinationNamed.latitude)
+                    intent.putExtra(INTENT_LONGITUDE, destinationNamed.longitude)
+                    intent.putExtra(INTENT_DEST, destinationNamed.name)
                     startService(intent)
                 }else{
+                    ///Service停止
                     val intent = Intent(this, ForeGroundNav::class.java)
 
                     stopService(intent)
@@ -93,13 +102,16 @@ class MainActivity : AppCompatActivity() {
             when {
 
                 permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true -> {
-                    // Precise location access granted.
-                    val backGroundGPSApproved = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
-                    if(backGroundGPSApproved == PackageManager.PERMISSION_GRANTED){
 
-                    }else{
-                        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
-                        PERMISSION_REQUEST_CODE)
+                    // Precise location access granted.
+                    if(Build.VERSION.SDK_INT >= 29){
+                        val backGroundGPSApproved = ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                        if(backGroundGPSApproved == PackageManager.PERMISSION_GRANTED){
+                            ///BackGroundGLocation Approved
+                        }else{
+                            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                            PERMISSION_REQUEST_CODE)
+                        }
                     }
                 }
                 permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true -> {
@@ -142,9 +154,11 @@ class MainActivity : AppCompatActivity() {
 
 @Preview(showBackground = true, showSystemUi=true)
 @Composable
-fun mainScaffold(isNavStartedFirst: Boolean = false,buttonOnClick:(Boolean)->Unit = {}){
-    var selectedMenu = rememberSaveable { mutableStateOf("Home") }
-    var isNavStarted = rememberSaveable { mutableStateOf(isNavStartedFirst) }
+fun MainScaffold(isNavStartedFirst: Boolean = false, markerOnClick: (NamedLocation) -> Unit = {}, buttonOnClick:(Boolean)->Unit = {}){
+    val selectedMenu = rememberSaveable { mutableStateOf("Home") }
+
+    ///Home menuのButtonの状態を管理
+    val isNavStarted = rememberSaveable { mutableStateOf(isNavStartedFirst) }
     Scaffold (
         bottomBar = {
             BottomBar(selectedMenu.value){
@@ -154,11 +168,16 @@ fun mainScaffold(isNavStartedFirst: Boolean = false,buttonOnClick:(Boolean)->Uni
     ){
         if(selectedMenu.value == "Home"){
             HomeMenu(isNavStarted = isNavStarted.value){
+                ///ボタン押すごとに切り替え
                 isNavStarted.value = !isNavStarted.value
+                ///アプリ側でデータ管理するために親で処理
                 buttonOnClick(isNavStarted.value)
             }
         }else{
-            MapMenu()
+            MapMenu(){
+                ///activityの変数にかかわるので上まであげる
+                markerOnClick(it)
+            }
         }
     }
 }
@@ -168,7 +187,7 @@ fun mainScaffold(isNavStartedFirst: Boolean = false,buttonOnClick:(Boolean)->Uni
 fun HomeMenu(destName:String = "ちえりあ", destAddress:String = "札幌市西区課長五城二兆",isNavStarted:Boolean, buttonOnClick:()->Unit){
 
 
-
+            //display
             Card(elevation = 5.dp, modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth()
@@ -246,7 +265,7 @@ fun HomeMenu(destName:String = "ちえりあ", destAddress:String = "札幌市�
 ///MapMenu
 @Preview(showBackground = true, showSystemUi=true)
 @Composable
-fun MapMenu(){
+fun MapMenu(markerOnClick:(NamedLocation)->Unit = {}){
     ///text
     val text = remember { mutableStateOf(TextFieldValue("")) }
     ///geocodingAPI running
@@ -257,16 +276,20 @@ fun MapMenu(){
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(LatLng(1.35, 103.87), 10f)
     }
+    //keyBoard Focus
+    val focusManager = LocalFocusManager.current
     /// after Searched
     LaunchedEffect(isSearchEnable.value){
         if(!isSearchEnable.value){
-            destinationList.value = APIController.getGeocodingResults(text.value.text)
-            if(destinationList.value.count() > 1){
-                val latLngBounds = NamedLocation.getBounds(destinationList.value)
+            ///Get geocoding data and display it
+            val geocodingResults = APIController.getGeocodingResults(text.value.text)
+            if(geocodingResults.count() > 1){
+                destinationList.value = geocodingResults
+                val latLngBounds = NamedLocation.getBounds(geocodingResults)
                 cameraPositionState.animate(CameraUpdateFactory.newLatLngBounds(latLngBounds, 10))
-
-            }else if(destinationList.value.isNotEmpty()){
-                cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(destinationList.value[0].getLatLng(),16f))
+            }else if(geocodingResults.isNotEmpty()){
+                destinationList.value = geocodingResults
+                cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(geocodingResults[0].getLatLng(),16f))
             }
             isSearchEnable.value = true
         }
@@ -279,24 +302,34 @@ fun MapMenu(){
             OutlinedTextField(
                 value = text.value,
                 onValueChange = {
-                    Log.i("", "OnInput")
                     text.value = it
 
                 },
                 enabled = isSearchEnable.value,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Search
+
+                ),
                 label = { Text(text = stringResource(R.string.destination)) },
                 placeholder = { Text(text = stringResource(R.string.write_your_destination)) },
                 leadingIcon = {
                     Icon(imageVector = Icons.Filled.Search,
                         contentDescription = "",
                         modifier = Modifier.clickable {
+                            ///geocoding launch
                             isSearchEnable.value = false
-
+                            focusManager.clearFocus()
                         }
                     )
                 },
-                modifier = Modifier.padding(20.dp)
+                modifier = Modifier.padding(20.dp),
+                singleLine = true,
+                keyboardActions = KeyboardActions (onSearch = {
+                    ///geocoding launch same above
+                    isSearchEnable.value = false
+                    focusManager.clearFocus()
+                })
 
 
             )
@@ -310,10 +343,14 @@ fun MapMenu(){
                     modifier = Modifier.fillMaxSize(),
                     cameraPositionState = cameraPositionState
                 ) {
-                    destinationList.value.forEach {
+                    destinationList.value.forEach { namedLocation ->
                         Marker(
-                            state = MarkerState(position = it.getLatLng()),
-                            title = it.name
+                            state = MarkerState(position = namedLocation.getLatLng()),
+                            title = namedLocation.name,
+                            onClick = {
+                                markerOnClick(NamedLocation(it))
+                                return@Marker true
+                            }
                         )
                     }
 

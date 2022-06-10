@@ -3,6 +3,7 @@ package net.misohiyoko.navigatorCom
 import android.location.Location
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
+import com.google.android.gms.maps.model.Marker
 
 data class NamedLocation(val latitude:Double, val longitude:Double, val name:String ){
     companion object{
@@ -51,6 +52,11 @@ data class NamedLocation(val latitude:Double, val longitude:Double, val name:Str
         latitude = location.latitude,
         longitude = location.longitude,
         name = name
+    )
+    constructor(marker: Marker) : this (
+            latitude = marker.position.latitude,
+        longitude = marker.position.longitude,
+        name = marker.title ?: ""
     )
     public fun getLocation():Location{
         val nullStr : String? = null
