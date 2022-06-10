@@ -1,7 +1,6 @@
-package ac.misohiyoko.navigatorCom
+package net.misohiyoko.navigatorCom
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
@@ -21,16 +20,12 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationRequest
 import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import java.io.FileOutputStream
-import java.io.OutputStreamWriter
-import java.io.PrintWriter
-import java.util.Locale
 
 class ForeGroundNav : Service(){
     companion object{
         const val NOTIFICATION_ID = 10
         const val CHANNEL_ID = "primary_notification_channel"
-        const val ACTION_IS_ACTIVE = "ac.hiyoko.NavCom.ForeGroundNaV.Active"
+        const val ACTION_IS_ACTIVE = "net.hiyoko.NavCom.ForeGroundNaV.Active"
         fun createIntent(context: Context) = Intent(context, ForeGroundNav::class.java)
         fun isActive(context:Context):Boolean{
             return LocalBroadcastManager.getInstance(context).sendBroadcast(Intent(ACTION_IS_ACTIVE))

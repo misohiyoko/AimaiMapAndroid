@@ -1,4 +1,4 @@
-package ac.misohiyoko.navigatorCom
+package net.misohiyoko.navigatorCom
 
 import io.ktor.client.*
 import io.ktor.client.call.*

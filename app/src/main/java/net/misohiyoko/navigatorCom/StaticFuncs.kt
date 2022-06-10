@@ -1,11 +1,8 @@
-package ac.misohiyoko.navigatorCom
+package net.misohiyoko.navigatorCom
 
 import android.location.Location
 import com.opencsv.CSVWriter
 import java.io.StringWriter
-import java.text.DateFormat
-import java.text.SimpleDateFormat
-import java.util.*
 
 class GPSDataDump(val destination: String){
     var locationList = mutableListOf<Location>()

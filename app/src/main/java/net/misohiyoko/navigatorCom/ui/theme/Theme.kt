@@ -1,4 +1,4 @@
-package ac.misohiyoko.navigatorCom.ui.theme
+package net.misohiyoko.navigatorCom.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme

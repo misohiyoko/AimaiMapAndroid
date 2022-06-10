@@ -1,4 +1,4 @@
-package ac.misohiyoko.navigatorCom
+package net.misohiyoko.navigatorCom
 
 
 import kotlinx.serialization.SerialName
