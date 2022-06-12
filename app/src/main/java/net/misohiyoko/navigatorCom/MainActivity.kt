@@ -10,7 +10,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -23,10 +22,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,9 +46,11 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.Marker
-import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 
 class MainActivity : AppCompatActivity() {
@@ -63,17 +61,36 @@ class MainActivity : AppCompatActivity() {
         public const val INTENT_DEST= "destination"
     }
 
-    private var destinationNamed:NamedLocation = NamedLocation(0.0, 0.0,"")
+    private var destinationNamed:NamedLocation = NamedLocation(0.0,0.0, "","")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        ///coroutine Scope
+        val scope = CoroutineScope(Dispatchers.Default)
         var isNavActive:Boolean = ForeGroundNav.isActive(this)
+        ///API Key Set
+        val appInfo = packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
+        APIController.GoogleApiKey = appInfo.metaData.getString("com.google.android.geo.API_KEY") ?: return
+        /// get Running Navigation
+        var destinationName:String
+        runBlocking {
+            destinationName = APIController.getPlacesDetailResults(destinationNamed.id).result.name
+        }
 
         setContent {
             ///Launch compose
-            MainScaffold(isNavActive,{
-                destinationNamed = it
-                Log.d("markerOnClick",destinationNamed.toString())
+            MainScaffold(
+                destAddress = destinationNamed.address,
+                isNavStartedFirst = isNavActive,
+                destName =  destinationName,
+                markerOnClick = {
+                    ///目的地をセット
+                    destinationNamed = it
+                    scope.launch {
+
+
+                    }
+
             }){value ->
                 isNavActive = value
                 if(isNavActive){
@@ -81,7 +98,7 @@ class MainActivity : AppCompatActivity() {
                     val intent = Intent(this, ForeGroundNav::class.java)
                     intent.putExtra(INTENT_LATITUDE, destinationNamed.latitude)
                     intent.putExtra(INTENT_LONGITUDE, destinationNamed.longitude)
-                    intent.putExtra(INTENT_DEST, destinationNamed.name)
+                    intent.putExtra(INTENT_DEST, destinationNamed.id)
                     startService(intent)
                 }else{
                     ///Service停止
@@ -154,11 +171,16 @@ class MainActivity : AppCompatActivity() {
 
 @Preview(showBackground = true, showSystemUi=true)
 @Composable
-fun MainScaffold(isNavStartedFirst: Boolean = false, markerOnClick: (NamedLocation) -> Unit = {}, buttonOnClick:(Boolean)->Unit = {}){
+fun MainScaffold(destAddress: String = "札幌市西区課長五城二兆" ,destName: String = "ちえりあ",isNavStartedFirst: Boolean = false, markerOnClick: (NamedLocation) -> Unit = {}, buttonOnClick:(Boolean)->Unit = {}){
     val selectedMenu = rememberSaveable { mutableStateOf("Home") }
+    ///coroutineScope
+    val scope = rememberCoroutineScope()
 
     ///Home menuのButtonの状態を管理
     val isNavStarted = rememberSaveable { mutableStateOf(isNavStartedFirst) }
+    /// Home menuのCardの内容
+    val destNameRemember = rememberSaveable{ mutableStateOf(destAddress) }
+    val destAddressRemember = rememberSaveable{ mutableStateOf(destName) }
     Scaffold (
         bottomBar = {
             BottomBar(selectedMenu.value){
@@ -167,7 +189,10 @@ fun MainScaffold(isNavStartedFirst: Boolean = false, markerOnClick: (NamedLocati
         }
     ){
         if(selectedMenu.value == "Home"){
-            HomeMenu(isNavStarted = isNavStarted.value){
+            HomeMenu(
+                destName = destNameRemember.value,
+                destAddress = destAddressRemember.value,
+                isNavStarted = isNavStarted.value){
                 ///ボタン押すごとに切り替え
                 isNavStarted.value = !isNavStarted.value
                 ///アプリ側でデータ管理するために親で処理
@@ -175,6 +200,12 @@ fun MainScaffold(isNavStartedFirst: Boolean = false, markerOnClick: (NamedLocati
             }
         }else{
             MapMenu(){
+                scope.launch {
+                    ///マーカークリック後、ホームの表示を変える
+                    destNameRemember.value = APIController.getPlacesDetailResults(it.id).result.name
+                    destAddressRemember.value = it.address
+                }
+
                 ///activityの変数にかかわるので上まであげる
                 markerOnClick(it)
             }
@@ -184,7 +215,7 @@ fun MainScaffold(isNavStartedFirst: Boolean = false, markerOnClick: (NamedLocati
 
 
 @Composable
-fun HomeMenu(destName:String = "ちえりあ", destAddress:String = "札幌市西区課長五城二兆",isNavStarted:Boolean, buttonOnClick:()->Unit){
+fun HomeMenu(destName:String, destAddress:String, isNavStarted:Boolean, buttonOnClick:()->Unit){
 
 
             //display
@@ -278,6 +309,7 @@ fun MapMenu(markerOnClick:(NamedLocation)->Unit = {}){
     }
     //keyBoard Focus
     val focusManager = LocalFocusManager.current
+
     /// after Searched
     LaunchedEffect(isSearchEnable.value){
         if(!isSearchEnable.value){
@@ -344,15 +376,9 @@ fun MapMenu(markerOnClick:(NamedLocation)->Unit = {}){
                     cameraPositionState = cameraPositionState
                 ) {
                     destinationList.value.forEach { namedLocation ->
-                        Marker(
-                            state = MarkerState(position = namedLocation.getLatLng()),
-                            title = namedLocation.name,
-                            onClick = {
-                                ///markerをクリックして目的地に指定
-                                markerOnClick(NamedLocation(it))
-                                return@Marker true
-                            }
-                        )
+                        namedLocation.SetMarker(){
+                            markerOnClick(it)
+                        }
                     }
 
 

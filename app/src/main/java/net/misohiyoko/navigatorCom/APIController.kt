@@ -14,10 +14,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
 object APIController {
-    init {
-
-    }
-    const val GoogleApiKey = "AIzaSyCV_MLSJQRJTR4O8rG2F7bTQL8-vtKCEj4"
+    var GoogleApiKey:String = ""
 
 
 
@@ -63,7 +60,8 @@ object APIController {
                 NamedLocation(
                     latitude = it.geometry.location.lat,
                     longitude = it.geometry.location.lng,
-                    name = it.placeId
+                    id = it.placeId,
+                    address = it.formattedAddress
                 )
             }
 
@@ -72,11 +70,18 @@ object APIController {
 
     }
 
-    private suspend fun getPlacesDetailData(placeId:String){
+    private suspend fun getPlacesDetailData(placeId:String) : Result<HttpResponse>{
         val urlString = "https://maps.googleapis.com/maps/api/place/details/json"
         val urlBuilder = URLBuilder(urlString)
         urlBuilder.parameters.append("place_id", placeId)
-        urlBuilder.parameters.append("key",)
+        urlBuilder.parameters.append("key", GoogleApiKey)
+        val url = Url(urlBuilder)
+        return getJson(url)
+    }
+
+    public suspend fun getPlacesDetailResults(placeId: String) : PlacesDetailResponse{
+        val placesDetailResponse = getPlacesDetailData(placeId)
+        return placesDetailResponse.getOrNull()?.body<PlacesDetailResponse>() ?: PlacesDetailResponse()
     }
 
 }
