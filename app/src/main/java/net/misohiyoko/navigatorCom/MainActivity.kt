@@ -56,8 +56,6 @@ import kotlinx.coroutines.runBlocking
 class MainActivity : AppCompatActivity() {
     companion object {
         private const val PERMISSION_REQUEST_CODE = 1234
-        public const val INTENT_LATITUDE = "latitude"
-        public const val INTENT_LONGITUDE = "longitude"
         public const val INTENT_DEST= "destination"
     }
 
@@ -96,9 +94,7 @@ class MainActivity : AppCompatActivity() {
                 if(isNavActive){
                     ///ナビ開始時Service発行
                     val intent = Intent(this, ForeGroundNav::class.java)
-                    intent.putExtra(INTENT_LATITUDE, destinationNamed.latitude)
-                    intent.putExtra(INTENT_LONGITUDE, destinationNamed.longitude)
-                    intent.putExtra(INTENT_DEST, destinationNamed.id)
+                    intent.putExtra(INTENT_DEST, destinationNamed.makeBundle())
                     startService(intent)
                 }else{
                     ///Service停止

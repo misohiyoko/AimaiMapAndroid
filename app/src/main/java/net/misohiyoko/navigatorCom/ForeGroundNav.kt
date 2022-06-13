@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.Location
+import android.os.Bundle
 import android.os.IBinder
 import android.os.Looper
 import androidx.core.app.ActivityCompat
@@ -20,6 +21,7 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationRequest
 import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import java.util.jar.Attributes.Name
 
 class ForeGroundNav : Service(){
     companion object{
@@ -63,13 +65,13 @@ class ForeGroundNav : Service(){
             }
 
         }
-        val dest:String
+
         if (intent != null) {
-            dest = intent.getStringExtra(MainActivity.INTENT_DEST) ?: return START_NOT_STICKY
+            destination = NamedLocation(intent.getBundleExtra(MainActivity.INTENT_DEST) ?: return START_NOT_STICKY)
         }else{
             return START_NOT_STICKY
         }
-        locationProfile = GPSDataDump(dest)
+        locationProfile = GPSDataDump(destination.id)
 
 
         val pendingIntent: PendingIntent =
