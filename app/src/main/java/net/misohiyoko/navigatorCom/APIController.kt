@@ -53,18 +53,20 @@ object APIController {
     public suspend fun getGeocodingResults(name: String): List<NamedLocation> {
 
         val geocodingResponse = getGeocodingData(name)
-
-
-        val locationsNullable =
-            geocodingResponse.getOrNull()?.body<GeocodingResponse>()?.results?.map {
-                NamedLocation(
-                    latitude = it.geometry.location.lat,
-                    longitude = it.geometry.location.lng,
-                    id = it.placeId,
-                    address = it.formattedAddress
-                )
-            }
-
+        var locationsNullable:List<NamedLocation>?
+        try {
+            locationsNullable =
+                geocodingResponse.getOrNull()?.body<GeocodingResponse>()?.results?.map {
+                    NamedLocation(
+                        latitude = it.geometry.location.lat,
+                        longitude = it.geometry.location.lng,
+                        id = it.placeId,
+                        address = it.formattedAddress
+                    )
+                }
+        }catch (e:Exception) {
+            locationsNullable = null
+        }
 
         return locationsNullable ?: listOf<NamedLocation>()
 

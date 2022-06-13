@@ -7,6 +7,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.content.IntentSender.SendIntentException
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -65,7 +66,16 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         ///coroutine Scope
         val scope = CoroutineScope(Dispatchers.Default)
+        /// Activityの生存確認
         var isNavActive:Boolean = ForeGroundNav.isActive(this)
+        /// Destinationを復帰
+        if(isNavActive && intent != null){
+            try{
+                destinationNamed = NamedLocation(intent.getBundleExtra(ForeGroundNav.ACTION_DESTINATION) ?: throw SendIntentException("Destination Failed"))
+            }catch (e:Exception){
+
+            }
+        }
         ///API Key Set
         val appInfo = packageManager.getApplicationInfo(packageName, PackageManager.GET_META_DATA)
         APIController.GoogleApiKey = appInfo.metaData.getString("com.google.android.geo.API_KEY") ?: return

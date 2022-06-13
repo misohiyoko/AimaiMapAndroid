@@ -1,6 +1,7 @@
 package net.misohiyoko.navigatorCom
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.app.Service
 import android.content.BroadcastReceiver
@@ -65,20 +66,21 @@ class ForeGroundNav : Service(){
             }
 
         }
-
+        locationProfile = GPSDataDump("destination")
         if (intent != null) {
             destination = NamedLocation(intent.getBundleExtra(MainActivity.INTENT_DEST) ?: return START_NOT_STICKY)
         }else{
+            destination = NamedLocation(0.0,0.0,"","")
             return START_NOT_STICKY
         }
-        locationProfile = GPSDataDump(destination.id)
+
 
 
         val pendingIntent: PendingIntent =
             Intent(this, MainActivity::class.java).let {notificationIntent ->
                 notificationIntent.putExtra(ACTION_IS_ACTIVE, true)
                 notificationIntent.putExtra(ACTION_DESTINATION, destination.makeBundle())
-                PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
+                PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
             }
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(resources.getString(R.string.notification_title))
@@ -102,6 +104,7 @@ class ForeGroundNav : Service(){
 
 
     //@SuppressLint("MissingPermission")
+    @SuppressLint("MissingPermission")
     private fun startLocationUpdate(){
         val locationRequest = createLocationRequest() ?: return
         if (ActivityCompat.checkSelfPermission(
@@ -156,7 +159,8 @@ class ForeGroundNav : Service(){
     }
 
     private fun processGeolocationData(location : Location){
-        Log.d(this.javaClass.name, "${location.latitude} : latitude ${location.longitude}: longitude")
+        Log.d(this.javaClass.name + destination.address, "${location.latitude} : latitude ${location.longitude}: longitude")
+
         //val textToBeWrite = "${location.latitude} : latitude ${location.longitude}: longitude"
         locationProfile.locationList.add(location)
     }
