@@ -26,6 +26,7 @@ class ForeGroundNav : Service(){
         const val NOTIFICATION_ID = 10
         const val CHANNEL_ID = "primary_notification_channel"
         const val ACTION_IS_ACTIVE = "net.hiyoko.NavCom.ForeGroundNaV.Active"
+        const val ACTION_DESTINATION = "net.hiyoko.NavCom.ForeGroundNaV.Action.Destination"
         fun createIntent(context: Context) = Intent(context, ForeGroundNav::class.java)
         /// is Navigation Active
         fun isActive(context:Context):Boolean{
@@ -34,8 +35,8 @@ class ForeGroundNav : Service(){
     }
     private lateinit var fusedLocationClient:FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
+    private lateinit var destination:NamedLocation
     private lateinit var locationProfile:GPSDataDump
-
     private val localBroadcastManager by lazy {LocalBroadcastManager.getInstance(applicationContext)}
     ///Dummy Receiver
     private val broadcastReceiver = object : BroadcastReceiver(){
@@ -73,6 +74,8 @@ class ForeGroundNav : Service(){
 
         val pendingIntent: PendingIntent =
             Intent(this, MainActivity::class.java).let {notificationIntent ->
+                notificationIntent.putExtra(ACTION_IS_ACTIVE, true)
+                notificationIntent.putExtra(ACTION_DESTINATION, destination.makeBundle())
                 PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_IMMUTABLE)
             }
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)

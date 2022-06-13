@@ -1,6 +1,7 @@
 package net.misohiyoko.navigatorCom
 
 import android.location.Location
+import android.os.Bundle
 import androidx.compose.runtime.Composable
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
@@ -64,6 +65,22 @@ data class NamedLocation(val latitude:Double, val longitude:Double, val id:Strin
         id = marker.title ?: "",
         address = ""
     )
+    ///ForeGround to MainActivity
+    constructor(bundle:Bundle):this(
+        latitude = bundle.getDouble("latitude", 0.0),
+        longitude = bundle.getDouble("longitude", 0.0),
+        id = bundle.getString("id",""),
+        address = bundle.getString("address", "")
+    )
+    public fun makeBundle():Bundle{
+        val bundle = Bundle()
+        bundle.putDouble("latitude", latitude)
+        bundle.putDouble("longitude", longitude)
+        bundle.putString("id", id)
+        bundle.putString("address", address)
+        return bundle
+    }
+
     public fun getLocation():Location{
         val nullStr : String? = null
         val location = Location(nullStr)
