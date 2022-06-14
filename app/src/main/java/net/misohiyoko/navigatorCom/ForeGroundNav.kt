@@ -159,7 +159,7 @@ class ForeGroundNav : Service(){
     }
 
     private fun processGeolocationData(location : Location){
-        Log.d(this.javaClass.name + destination.address, "${location.latitude} : latitude ${location.longitude}: longitude")
+        Log.d(this.javaClass.name, "${location.latitude} : latitude ${location.longitude}: longitude")
 
         //val textToBeWrite = "${location.latitude} : latitude ${location.longitude}: longitude"
         locationProfile.locationList.add(location)

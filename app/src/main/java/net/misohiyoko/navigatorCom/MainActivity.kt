@@ -72,7 +72,7 @@ class MainActivity : AppCompatActivity() {
         if(isNavActive && intent != null){
             try{
                 destinationNamed = NamedLocation(intent.getBundleExtra(ForeGroundNav.ACTION_DESTINATION) ?: throw SendIntentException("Destination Failed"))
-            }catch (e:Exception){
+            }catch (_:Exception){
 
             }
         }
