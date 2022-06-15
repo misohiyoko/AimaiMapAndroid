@@ -10,6 +10,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.Location
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.IBinder
 import android.os.Looper
@@ -24,7 +25,7 @@ import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import java.util.jar.Attributes.Name
 
-class ForeGroundNav : Service(){
+class ForeGroundNav : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener{
     companion object{
         const val NOTIFICATION_ID = 10
         const val CHANNEL_ID = "primary_notification_channel"
@@ -167,5 +168,14 @@ class ForeGroundNav : Service(){
 
     public fun getLastLocation():Location{
         return locationProfile.locationList.last()
+    }
+
+    override fun onPrepared(p0: MediaPlayer?) {
+        p0?.start()
+    }
+
+    override fun onError(p0: MediaPlayer?, p1: Int, p2: Int): Boolean {
+        p0?.reset()
+        return true
     }
 }

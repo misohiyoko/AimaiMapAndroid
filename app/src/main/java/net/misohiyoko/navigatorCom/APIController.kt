@@ -21,6 +21,7 @@ object APIController {
     private suspend inline fun getJson(url: Url): Result<HttpResponse> {
         val client = HttpClient(CIO) {
             expectSuccess = true
+            followRedirects = true
             install(ContentNegotiation) {
                 json(Json{
                     ignoreUnknownKeys = true
@@ -53,6 +54,7 @@ object APIController {
     public suspend fun getGeocodingResults(name: String): List<NamedLocation> {
 
         val geocodingResponse = getGeocodingData(name)
+
         var locationsNullable:List<NamedLocation>?
         try {
             locationsNullable =
@@ -83,7 +85,12 @@ object APIController {
 
     public suspend fun getPlacesDetailResults(placeId: String) : PlacesDetailResponse{
         val placesDetailResponse = getPlacesDetailData(placeId)
-        return placesDetailResponse.getOrNull()?.body<PlacesDetailResponse>() ?: PlacesDetailResponse()
+        try {
+            return placesDetailResponse.getOrNull()?.body<PlacesDetailResponse>()
+                ?: PlacesDetailResponse()
+        }catch (e:Exception){
+            return PlacesDetailResponse()
+        }
     }
 
 }
