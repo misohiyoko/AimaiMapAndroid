@@ -11,9 +11,14 @@ import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.Location
 import android.media.MediaPlayer
+import android.net.wifi.WifiManager.WifiLock
 import android.os.Bundle
 import android.os.IBinder
 import android.os.Looper
+import android.os.PowerManager
+import android.os.PowerManager.WakeLock
+import android.speech.tts.TextToSpeech
+import android.speech.tts.UtteranceProgressListener
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -23,14 +28,17 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationRequest
 import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import java.util.*
 import java.util.jar.Attributes.Name
 
-class ForeGroundNav : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener{
+class ForeGroundNav : Service(), TextToSpeech.OnInitListener{
     companion object{
         const val NOTIFICATION_ID = 10
         const val CHANNEL_ID = "primary_notification_channel"
         const val ACTION_IS_ACTIVE = "net.hiyoko.NavCom.ForeGroundNaV.Active"
         const val ACTION_DESTINATION = "net.hiyoko.NavCom.ForeGroundNaV.Action.Destination"
+        const val UTTERANCE_ID = "net.hiyoko.NavCom.ForeGroundNaV:Utterance.id"
+        const val WAKELOCK_TAG = "net.hiyoko.NavCom.ForeGroundNaV:WakeLockTag"
         fun createIntent(context: Context) = Intent(context, ForeGroundNav::class.java)
         /// is Navigation Active
         fun isActive(context:Context):Boolean{
@@ -48,11 +56,20 @@ class ForeGroundNav : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnE
             //Nasi
         }
     }
+    //TTS
+    private lateinit var textToSpeech:TextToSpeech
+    private var isTTSAvailable:Boolean = false
+    ///Wake Lock
+    private lateinit var powerManager:PowerManager
+    private lateinit var wakeLock:WakeLock
     override fun onCreate() {
         super.onCreate()
         ///locationService
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         localBroadcastManager.registerReceiver(broadcastReceiver, IntentFilter(ACTION_IS_ACTIVE))
+        textToSpeech = TextToSpeech(this, this)
+        powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -136,6 +153,7 @@ class ForeGroundNav : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnE
     override fun onDestroy() {
         super.onDestroy()
         stopLocationUpdate()
+        shutDownTTS()
         localBroadcastManager.unregisterReceiver(broadcastReceiver)
         stopSelf()
     }
@@ -169,13 +187,62 @@ class ForeGroundNav : Service(), MediaPlayer.OnPreparedListener, MediaPlayer.OnE
     public fun getLastLocation():Location{
         return locationProfile.locationList.last()
     }
+    //TTS init
+    override fun onInit(status: Int) {
+        if(status == TextToSpeech.SUCCESS){
+            val locale = Locale.getDefault()
+            if(textToSpeech.isLanguageAvailable(locale) >= TextToSpeech.LANG_AVAILABLE){
+                textToSpeech.apply {
+                    setLanguage(locale)
+                    setOnUtteranceProgressListener(object : UtteranceProgressListener(){
+                        override fun onDone(utteranceId : String?) {
+                            if(wakeLock.isHeld){
+                                wakeLock.release()
+                            }
+                        }
 
-    override fun onPrepared(p0: MediaPlayer?) {
-        p0?.start()
+                        override fun onStart(utteranceId : String?) {
+                            wakeLock.acquire(10*60*1000L /*10 minutes*/)
+                        }
+
+                        override fun onError(utteranceId : String, errorCode : Int) {
+                            if(wakeLock.isHeld){
+                                wakeLock.release()
+                            }
+                        }
+
+                    })
+
+                }
+
+
+                isTTSAvailable = true
+            }
+
+
+        }
     }
 
-    override fun onError(p0: MediaPlayer?, p1: Int, p2: Int): Boolean {
-        p0?.reset()
-        return true
+    public fun speakText(text:String):Boolean{
+        if(isTTSAvailable){
+            textToSpeech.speak(
+                text,
+                TextToSpeech.QUEUE_ADD,
+                null,
+                UTTERANCE_ID
+            )
+            return true
+        }else{
+            return false
+        }
     }
+
+    private fun shutDownTTS(){
+        isTTSAvailable = false
+        textToSpeech.stop()
+        textToSpeech.shutdown()
+
+    }
+
+
 }
