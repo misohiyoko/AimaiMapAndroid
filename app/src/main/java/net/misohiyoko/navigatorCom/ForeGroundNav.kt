@@ -172,7 +172,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
                             speakAnnouncementToDestination(accurateLocation)
                             announcedTime = 0
                         }
-                        announcedTime in 29..32->{
+                        announcedTime > 29->{
                             if(deltaAngleTo(
                                     accurateLocation,
                                     destination.getLocation()
@@ -185,8 +185,6 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
                     }
                 }
                 announcedTime++
-                //30sec
-                ///TestMode 3sec
                 Log.d(javaClass.name,"$announcedTime")
                 delay(1000)
             }
@@ -196,7 +194,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
     private fun speakAnnouncementToDestination(accurateLocation: Location) {
         speakText(
             resources.getString(R.string.distance_to_destination_is) +
-                    accurateLocation.distanceTo(destination.getLocation())
+                    (accurateLocation.distanceTo(destination.getLocation()).toInt())
                         .toString() +
                     resources.getString(R.string.meter) + ". " +
                     resources.getString(R.string.direction_to_destination) +
