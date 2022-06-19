@@ -10,4 +10,5 @@
     <string name="direction_to_destination">目的地の方角は</string>
     <string name="start_navigation">ナビを開始</string>
     <string name="stop_navigation">ナビを停止</string>
+    <string name="times_direction">時の方角</string>
 </resources>

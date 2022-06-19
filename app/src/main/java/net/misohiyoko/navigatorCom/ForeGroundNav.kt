@@ -61,7 +61,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
     private lateinit var powerManager:PowerManager
     private lateinit var wakeLock:WakeLock
     ///Announce CoolDown
-    private val announcedTime:Date = Date(System.currentTimeMillis())
+
     ///Coroutine
     private val job: Job = SupervisorJob()
     override val coroutineContext: CoroutineContext
@@ -162,24 +162,56 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
     }
     private fun startAnnouncement(){
         this.launch {
+            var announcedTime:Int = 0
             while (true){
-                val accurateLocation = getAccurateLastLocation() ?: continue
-                speakText(
-                    resources.getString(R.string.distance_to_destination_is) +
-                            accurateLocation.distanceTo(destination.getLocation()).toString() +
-                            resources.getString(R.string.meter)+ ". " +
-                            resources.getString(R.string.direction_to_destination) +
-                            if(Locale.getDefault() == Locale.JAPAN)
-                                changeAlphabetHalfToFull((deltaAngleTo(accurateLocation, destination.getLocation())/30).toInt().toString()) + ". "
-                                else (deltaAngleTo(accurateLocation, destination.getLocation())/30).toInt().toString() + ". "
+                val accurateLocation = getAccurateLastLocation()
+                if(accurateLocation != null){
+                    when{
 
+                        announcedTime > 59-> {
+                            speakAnnouncementToDestination(accurateLocation)
+                            announcedTime = 0
+                        }
+                        announcedTime in 29..32->{
+                            if(deltaAngleTo(
+                                    accurateLocation,
+                                    destination.getLocation()
+                                ) > 60){
+                                speakAnnouncementToDestination(accurateLocation)
+                                announcedTime = 0
+                            }
 
-                )
+                        }
+                    }
+                }
+                announcedTime++
                 //30sec
                 ///TestMode 3sec
-                delay(30000)
+                Log.d(javaClass.name,"$announcedTime")
+                delay(1000)
             }
         }
+    }
+
+    private fun speakAnnouncementToDestination(accurateLocation: Location) {
+        speakText(
+            resources.getString(R.string.distance_to_destination_is) +
+                    accurateLocation.distanceTo(destination.getLocation())
+                        .toString() +
+                    resources.getString(R.string.meter) + ". " +
+                    resources.getString(R.string.direction_to_destination) +
+                    if (Locale.getDefault() == Locale.JAPAN)
+                        changeAlphabetHalfToFull(
+                            (deltaAngleTo(
+                                accurateLocation,
+                                destination.getLocation()
+                            ) / 30).toInt().toString()
+                        ) + resources.getString(R.string.times_direction) + ". "
+                    else (deltaAngleTo(
+                        accurateLocation,
+                        destination.getLocation()
+                    ) / 30).toInt().toString() + resources.getString(R.string.times_direction) + ". "
+        )
     }
 
     private fun cancelCoroutine(){
