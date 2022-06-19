@@ -12,6 +12,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import java.util.*
 
 object APIController {
     var GoogleApiKey:String = ""
@@ -78,6 +79,7 @@ object APIController {
         val urlString = "https://maps.googleapis.com/maps/api/place/details/json"
         val urlBuilder = URLBuilder(urlString)
         urlBuilder.parameters.append("place_id", placeId)
+        urlBuilder.parameters.append("language", Locale.getDefault().language)
         urlBuilder.parameters.append("key", GoogleApiKey)
         val url = Url(urlBuilder)
         return getJson(url)
