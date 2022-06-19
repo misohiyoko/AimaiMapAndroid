@@ -4,4 +4,9 @@
     <string name="notification_title">Navigating</string>
     <string name="notification_text">Navigating your destination</string>
     <string name="write_your_destination">Write your destination</string>
+    <string name="distance_to_destination_is">Distance to destination is</string>
+    <string name="meter">meter</string>
+    <string name="direction_to_destination">Direction to the destination is</string>
+    <string name="start_navigation">Start</string>
+    <string name="stop_navigation">Stop</string>
 </resources>

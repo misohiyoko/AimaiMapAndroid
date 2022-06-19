@@ -5,4 +5,9 @@
     <string name="notification_title">ナビゲーション中</string>
     <string name="notification_text">目的地を案内中</string>
     <string name="write_your_destination">目的地を入力</string>
+    <string name="distance_to_destination_is">目的地までの距離は</string>
+    <string name="meter">メートルです</string>
+    <string name="direction_to_destination">目的地の方角は</string>
+    <string name="start_navigation">ナビを開始</string>
+    <string name="stop_navigation">ナビを停止</string>
 </resources>

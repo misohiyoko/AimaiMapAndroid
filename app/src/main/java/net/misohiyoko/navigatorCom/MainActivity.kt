@@ -285,10 +285,10 @@ fun HomeMenu(destName:String, destAddress:String, isNavStarted:Boolean, buttonOn
                     ){
                         if(!isNavStarted){
                             Icon(Icons.Filled.PlayArrow,"")
-                            Text("ナビを開始")
+                            Text(stringResource(id = R.string.start_navigation))
                         }else{
                             Icon(Icons.Filled.Close,"")
-                            Text("ナビを停止")
+                            Text(stringResource(id = R.string.stop_navigation))
                         }
                     }
 

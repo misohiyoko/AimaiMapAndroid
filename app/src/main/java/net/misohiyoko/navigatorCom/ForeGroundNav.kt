@@ -10,12 +10,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.Location
-import android.media.MediaPlayer
-import android.net.wifi.WifiManager.WifiLock
-import android.os.Bundle
-import android.os.IBinder
-import android.os.Looper
-import android.os.PowerManager
+import android.os.*
 import android.os.PowerManager.WakeLock
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
@@ -27,11 +22,13 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationRequest
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import kotlinx.coroutines.*
 import java.util.*
-import java.util.jar.Attributes.Name
+import kotlin.coroutines.CoroutineContext
 
-class ForeGroundNav : Service(), TextToSpeech.OnInitListener{
+class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
     companion object{
         const val NOTIFICATION_ID = 10
         const val CHANNEL_ID = "primary_notification_channel"
@@ -58,23 +55,31 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener{
     }
     //TTS
     private lateinit var textToSpeech:TextToSpeech
+    private val ttsParams:Bundle = Bundle()
     private var isTTSAvailable:Boolean = false
     ///Wake Lock
     private lateinit var powerManager:PowerManager
     private lateinit var wakeLock:WakeLock
+    ///Announce CoolDown
+    private val announcedTime:Date = Date(System.currentTimeMillis())
+    ///Coroutine
+    private val job: Job = SupervisorJob()
+    override val coroutineContext: CoroutineContext
+        get() = this.job
     override fun onCreate() {
         super.onCreate()
         ///locationService
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         localBroadcastManager.registerReceiver(broadcastReceiver, IntentFilter(ACTION_IS_ACTIVE))
-        textToSpeech = TextToSpeech(this, this)
         powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG)
+        ttsParams.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 1f)
+        textToSpeech = TextToSpeech(this, this)
+
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(p0: LocationResult) {
                 super.onLocationResult(p0)
@@ -112,14 +117,14 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener{
 
         startLocationUpdate()
 
+        startAnnouncement()
+
         return START_STICKY
     }
 
     override fun onBind(p0: Intent?): IBinder? {
         return null
     }
-
-
 
     //@SuppressLint("MissingPermission")
     @SuppressLint("MissingPermission")
@@ -149,11 +154,44 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener{
         return super.stopService(name)
 
     }
+    private fun shutDownTTS(){
+        isTTSAvailable = false
+        textToSpeech.stop()
+        textToSpeech.shutdown()
 
+    }
+    private fun startAnnouncement(){
+        this.launch {
+            while (true){
+                val accurateLocation = getAccurateLastLocation() ?: continue
+                speakText(
+                    resources.getString(R.string.distance_to_destination_is) +
+                            accurateLocation.distanceTo(destination.getLocation()).toString() +
+                            resources.getString(R.string.meter)+ ". " +
+                            resources.getString(R.string.direction_to_destination) +
+                            if(Locale.getDefault() == Locale.JAPAN)
+                                changeAlphabetHalfToFull((deltaAngleTo(accurateLocation, destination.getLocation())/30).toInt().toString()) + ". "
+                                else (deltaAngleTo(accurateLocation, destination.getLocation())/30).toInt().toString() + ". "
+
+
+                )
+                //30sec
+                ///TestMode 3sec
+                delay(30000)
+            }
+        }
+    }
+
+    private fun cancelCoroutine(){
+        this.launch(Job()) {
+            job.cancelAndJoin()
+        }
+    }
     override fun onDestroy() {
         super.onDestroy()
         stopLocationUpdate()
         shutDownTTS()
+        cancelCoroutine()
         localBroadcastManager.unregisterReceiver(broadcastReceiver)
         stopSelf()
     }
@@ -161,7 +199,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener{
 
         fusedLocationClient.removeLocationUpdates(locationCallback)
 
-        this.openFileOutput(System.currentTimeMillis().toString() + ".csv", Context.MODE_PRIVATE).use {
+        this.openFileOutput(System.currentTimeMillis().toString()+"Time:"+"Destination"+destination.toString() + ".csv", Context.MODE_PRIVATE).use {
             val textToBeWrite = locationProfile.writeStringCSV()
             val bytesToBeWrite = textToBeWrite.toByteArray()
             it.write(bytesToBeWrite)
@@ -177,16 +215,6 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener{
         return locationRequest
     }
 
-    private fun processGeolocationData(location : Location){
-        Log.d(this.javaClass.name, "${location.latitude} : latitude ${location.longitude}: longitude")
-
-        //val textToBeWrite = "${location.latitude} : latitude ${location.longitude}: longitude"
-        locationProfile.locationList.add(location)
-    }
-
-    public fun getLastLocation():Location{
-        return locationProfile.locationList.last()
-    }
     //TTS init
     override fun onInit(status: Int) {
         if(status == TextToSpeech.SUCCESS){
@@ -194,11 +222,17 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener{
             if(textToSpeech.isLanguageAvailable(locale) >= TextToSpeech.LANG_AVAILABLE){
                 textToSpeech.apply {
                     setLanguage(locale)
+
                     setOnUtteranceProgressListener(object : UtteranceProgressListener(){
                         override fun onDone(utteranceId : String?) {
                             if(wakeLock.isHeld){
                                 wakeLock.release()
                             }
+                        }
+
+                        @Deprecated("Deprecated in Java")
+                        override fun onError(p0: String?) {
+
                         }
 
                         override fun onStart(utteranceId : String?) {
@@ -228,7 +262,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener{
             textToSpeech.speak(
                 text,
                 TextToSpeech.QUEUE_ADD,
-                null,
+                ttsParams,
                 UTTERANCE_ID
             )
             return true
@@ -237,11 +271,37 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener{
         }
     }
 
-    private fun shutDownTTS(){
-        isTTSAvailable = false
-        textToSpeech.stop()
-        textToSpeech.shutdown()
 
+    private fun processGeolocationData(location : Location){
+        Log.d(this.javaClass.name, "${location.latitude} : latitude ${location.longitude}: longitude ${location.accuracy}:Acc")
+        ///speakText("${location.latitude} : latitude ${location.longitude}: longitude")
+        //val textToBeWrite = "${location.latitude} : latitude ${location.longitude}: longitude"
+        val rangeToDestination = location.distanceTo(destination.getLocation())
+        val headingToDestination = location.bearingTo(destination.getLocation())
+        val headingDelta = deltaAngleTo(location,destination.getLocation())
+        Log.d(this.javaClass.name, "${headingToDestination}:Heading ${rangeToDestination}:range ${headingDelta}:delta")
+
+
+        locationProfile.locationList.add(location)
+
+    }
+
+    private fun getAccurateLastLocation():Location?{
+        var i = 0
+        val lastLocation: Location?
+
+        if(Build.VERSION.SDK_INT > 25){
+            lastLocation = locationProfile.locationList.lastOrNull{
+                i++
+                it.hasBearing() && it.accuracy <= 20f && it.bearingAccuracyDegrees <= 31f && i < 5
+            }
+        }else{
+            lastLocation = locationProfile.locationList.lastOrNull {
+                i++
+                it.hasBearing() &&  it.accuracy <= 20f && i < 5
+            }
+        }
+        return lastLocation
     }
 
 
