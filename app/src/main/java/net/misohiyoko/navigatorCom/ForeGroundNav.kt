@@ -317,21 +317,31 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
     }
 
     private fun getAccurateLastLocation():Location?{
-        var i = 0
-        val lastLocation: Location?
+
+        val lastLocations: List<Location>
 
         if(Build.VERSION.SDK_INT > 25){
-            lastLocation = locationProfile.locationList.lastOrNull{
-                i++
-                it.hasBearing() && it.accuracy <= 20f && it.bearingAccuracyDegrees <= 31f && i < 5
+
+            lastLocations = locationProfile.locationList.filterIndexed{
+                index, it -> index  > (locationProfile.locationList.count() - 5) &&
+                    it.hasBearing() && it.accuracy <= 20f && it.bearingAccuracyDegrees <= 31f
             }
+
+
         }else{
-            lastLocation = locationProfile.locationList.lastOrNull {
-                i++
-                it.hasBearing() &&  it.accuracy <= 20f && i < 5
+            lastLocations = locationProfile.locationList.filterIndexed{
+                    index, it -> index  > (locationProfile.locationList.count() - 5) &&
+                    it.hasBearing() && it.accuracy <= 20f
             }
+
         }
-        return lastLocation
+        if(lastLocations.count() > 3 && getRange( lastLocations.map { it.bearing }) < 31f){
+            return lastLocations.lastOrNull()
+        }
+        else{
+            return null
+        }
+
     }
 
 

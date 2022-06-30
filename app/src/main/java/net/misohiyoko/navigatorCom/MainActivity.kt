@@ -378,7 +378,7 @@ fun MapMenu(markerOnClick:(NamedLocation)->Unit = {}){
                 .padding(30.dp)
                 .clip(RectangleShape)){
                 GoogleMap(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxWidth().padding(30.dp),
                     cameraPositionState = cameraPositionState
                 ) {
                     destinationList.value.forEach { namedLocation ->
