@@ -22,7 +22,6 @@ import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.LocationRequest
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.coroutines.*
 import java.util.*
@@ -321,21 +320,17 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
         val lastLocations: List<Location>
 
         if(Build.VERSION.SDK_INT > 25){
-
             lastLocations = locationProfile.locationList.filterIndexed{
                 index, it -> index  > (locationProfile.locationList.count() - 5) &&
-                    it.hasBearing() && it.accuracy <= 20f && it.bearingAccuracyDegrees <= 31f
+                    it.hasBearing() && it.accuracy <= 20f && it.bearingAccuracyDegrees <= 30f
             }
-
-
         }else{
             lastLocations = locationProfile.locationList.filterIndexed{
                     index, it -> index  > (locationProfile.locationList.count() - 5) &&
                     it.hasBearing() && it.accuracy <= 20f
             }
-
         }
-        if(lastLocations.count() > 3 && getRange( lastLocations.map { it.bearing }) < 31f){
+        if(lastLocations.count() > 3 && getAngularRange( lastLocations.map { it.bearing }) < 31f){
             return lastLocations.lastOrNull()
         }
         else{

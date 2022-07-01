@@ -26,6 +26,11 @@ public fun angularDistance(alpha: Float, beta: Float): Float {
     return if (phi < 0) 360 + phi else phi
 }
 
+public fun angularDistanceAbs(alpha: Float,beta: Float): Float{
+    val phi = abs(beta - alpha) % 360
+    return if (phi > 180) 360 - phi else phi
+}
+
 public fun deltaAngleTo(location: Location, destination: Location): Float {
     val headingToDestination = location.bearingTo(destination)
     return angularDistance( location.bearing,headingToDestination)
@@ -46,7 +51,7 @@ public fun changeAlphabetHalfToFull(str: String?): String? {
     return result
 }
 
-public fun getRange(list : List<Float>) : Float{
+public fun getAngularRange(list : List<Float>) : Float{
     val sorted = list.sortedDescending()
-    return if(sorted.count() > 2) sorted[0] - sorted.last() else 0f
+    return if(sorted.count() > 1) angularDistanceAbs(sorted.last(), sorted[0] ) else 0f
 }
