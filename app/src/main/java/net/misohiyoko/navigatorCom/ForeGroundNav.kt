@@ -60,7 +60,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
     private lateinit var powerManager:PowerManager
     private lateinit var wakeLock:WakeLock
     ///Announce CoolDown
-
+    var announcedDate:Long = System.currentTimeMillis()
     ///Coroutine
     private val job: Job = SupervisorJob()
     override val coroutineContext: CoroutineContext
@@ -116,8 +116,6 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
 
         startLocationUpdate()
 
-        startAnnouncement()
-
         return START_STICKY
     }
 
@@ -159,36 +157,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
         textToSpeech.shutdown()
 
     }
-    private fun startAnnouncement(){
-        this.launch {
-            var announcedTime:Int = 0
-            while (true){
-                val accurateLocation = getAccurateLastLocation()
-                if(accurateLocation != null){
-                    when{
 
-                        announcedTime > 24-> {
-                            speakAnnouncementToDestination(accurateLocation)
-                            announcedTime = 0
-                        }
-                        announcedTime > 15->{
-                            if(deltaAngleToAbs(
-                                    accurateLocation,
-                                    destination.getLocation()
-                                ) > 60){
-                                speakAnnouncementToDestination(accurateLocation)
-                                announcedTime = 0
-                            }
-
-                        }
-                    }
-                }
-                announcedTime++
-                Log.d(javaClass.name,"$announcedTime")
-                delay(1000)
-            }
-        }
-    }
 
     private fun speakAnnouncementToDestination(accurateLocation: Location) {
         speakText(
@@ -299,8 +268,20 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
             return false
         }
     }
+    /*
+    ///没になりました
+    private fun startAnnouncement(){
+        this.launch {
+            var announcedTime:Int = 0
+            while (true){
 
-
+                announcedTime++
+                Log.d(javaClass.name,"$announcedTime")
+                delay(1000)
+            }
+        }
+    }
+    */
     private fun processGeolocationData(location : Location){
         Log.d(this.javaClass.name, "${location.latitude} : latitude ${location.longitude}: longitude ${location.accuracy}:Acc")
         ///speakText("${location.latitude} : latitude ${location.longitude}: longitude")
@@ -312,7 +293,26 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
 
 
         locationProfile.locationList.add(location)
+        val accurateLocation = getAccurateLastLocation()
+        if(accurateLocation != null){
+            when{
 
+                System.currentTimeMillis() - announcedDate >= 30*1000-> {
+                    speakAnnouncementToDestination(accurateLocation)
+                    announcedDate = System.currentTimeMillis()
+                }
+                System.currentTimeMillis() - announcedDate >= 15*1000->{
+                    if(deltaAngleToAbs(
+                            accurateLocation,
+                            destination.getLocation()
+                        ) > 60){
+                        speakAnnouncementToDestination(accurateLocation)
+                        announcedDate = System.currentTimeMillis()
+                    }
+
+                }
+            }
+        }
     }
 
     private fun getAccurateLastLocation():Location?{
