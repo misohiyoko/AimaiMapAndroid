@@ -283,7 +283,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
     }
     */
     private fun processGeolocationData(location : Location){
-        Log.d(this.javaClass.name, "${location.latitude} : latitude ${location.longitude}: longitude ${location.accuracy}:Acc")
+        Log.d(this.javaClass.name, "${location.latitude} : latitude ${location.longitude}: longitude ${location.accuracy}:Acc ${location.bearing}:Bearing")
         ///speakText("${location.latitude} : latitude ${location.longitude}: longitude")
         //val textToBeWrite = "${location.latitude} : latitude ${location.longitude}: longitude"
         val rangeToDestination = location.distanceTo(destination.getLocation())
@@ -291,7 +291,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
         val headingDelta = deltaAngleTo(location,destination.getLocation())
         Log.d(this.javaClass.name, "${headingToDestination}:Heading ${rangeToDestination}:range ${headingDelta}:delta")
 
-
+        Log.d(this.javaClass.name, "${(System.currentTimeMillis() - announcedDate)}")
         locationProfile.locationList.add(location)
         val accurateLocation = getAccurateLastLocation()
         if(accurateLocation != null){
