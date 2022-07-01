@@ -167,12 +167,12 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
                 if(accurateLocation != null){
                     when{
 
-                        announcedTime > 59-> {
+                        announcedTime > 24-> {
                             speakAnnouncementToDestination(accurateLocation)
                             announcedTime = 0
                         }
-                        announcedTime > 29->{
-                            if(deltaAngleTo(
+                        announcedTime > 15->{
+                            if(deltaAngleToAbs(
                                     accurateLocation,
                                     destination.getLocation()
                                 ) > 60){
@@ -237,8 +237,8 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
 
     private fun createLocationRequest() : LocationRequest?{
         val locationRequest = LocationRequest.create().apply {
-            interval = 5000
-            fastestInterval = 2500
+            interval = 4000
+            fastestInterval = 3000
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
         return locationRequest
@@ -330,7 +330,9 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
                     it.hasBearing() && it.accuracy <= 20f
             }
         }
-        if(lastLocations.count() > 3 && getAngularRange( lastLocations.map { it.bearing }) < 31f){
+        Log.d(this.javaClass.name, "${getAngularRange( lastLocations.map { it.bearing })}:Range,${lastLocations.lastOrNull()}:Result")
+        speakText("${getAngularRange( lastLocations.map { it.bearing }).toInt()}")
+        if(lastLocations.count() > 4 && getAngularRange( lastLocations.map { it.bearing }) < 31f){
             return lastLocations.lastOrNull()
         }
         else{
