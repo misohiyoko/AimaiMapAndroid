@@ -295,6 +295,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
         locationProfile.locationList.add(location)
         val accurateLocation = getAccurateLastLocation()
         if(accurateLocation != null){
+            Log.d(this.javaClass.name, "${accurateLocation.bearing}")
             when{
 
                 System.currentTimeMillis() - announcedDate >= 30*1000-> {
@@ -321,18 +322,18 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
 
         if(Build.VERSION.SDK_INT > 25){
             lastLocations = locationProfile.locationList.filterIndexed{
-                index, it -> index  > (locationProfile.locationList.count() - 5) &&
+                index, it -> index  > (locationProfile.locationList.count() - 2) &&
                     it.hasBearing() && it.accuracy <= 20f && it.bearingAccuracyDegrees <= 30f
             }
         }else{
             lastLocations = locationProfile.locationList.filterIndexed{
-                    index, it -> index  > (locationProfile.locationList.count() - 5) &&
+                    index, it -> index  > (locationProfile.locationList.count() - 2) &&
                     it.hasBearing() && it.accuracy <= 20f
             }
         }
         Log.d(this.javaClass.name, "${getAngularRange( lastLocations.map { it.bearing })}:Range,${lastLocations.lastOrNull()}:Result")
-        speakText("${getAngularRange( lastLocations.map { it.bearing }).toInt()}")
-        if(lastLocations.count() > 4 && getAngularRange( lastLocations.map { it.bearing }) < 31f){
+        ///speakText("${getAngularRange( lastLocations.map { it.bearing }).toInt()}")
+        if(getAngularRange( lastLocations.map { it.bearing }) < 31f){
             return lastLocations.lastOrNull()
         }
         else{
