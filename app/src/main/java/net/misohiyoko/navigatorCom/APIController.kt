@@ -56,19 +56,17 @@ object APIController {
 
         val geocodingResponse = getGeocodingData(name)
 
-        var locationsNullable:List<NamedLocation>?
-        try {
-            locationsNullable =
-                geocodingResponse.getOrNull()?.body<GeocodingResponse>()?.results?.map {
-                    NamedLocation(
-                        latitude = it.geometry.location.lat,
-                        longitude = it.geometry.location.lng,
-                        id = it.placeId,
-                        address = it.formattedAddress
-                    )
-                }
+        val locationsNullable:List<NamedLocation>? = try {
+            geocodingResponse.getOrNull()?.body<GeocodingResponse>()?.results?.map {
+                NamedLocation(
+                    latitude = it.geometry.location.lat,
+                    longitude = it.geometry.location.lng,
+                    id = it.placeId,
+                    address = it.formattedAddress
+                )
+            }
         }catch (e:Exception) {
-            locationsNullable = null
+            null
         }
 
         return locationsNullable ?: listOf<NamedLocation>()
@@ -87,11 +85,11 @@ object APIController {
 
     public suspend fun getPlacesDetailResults(placeId: String) : PlacesDetailResponse{
         val placesDetailResponse = getPlacesDetailData(placeId)
-        try {
-            return placesDetailResponse.getOrNull()?.body<PlacesDetailResponse>()
+        return try {
+            placesDetailResponse.getOrNull()?.body<PlacesDetailResponse>()
                 ?: PlacesDetailResponse()
         }catch (e:Exception){
-            return PlacesDetailResponse()
+            PlacesDetailResponse()
         }
     }
 

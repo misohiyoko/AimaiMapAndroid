@@ -60,7 +60,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
     private lateinit var powerManager:PowerManager
     private lateinit var wakeLock:WakeLock
     ///Announce CoolDown
-    var announcedDate:Long = System.currentTimeMillis()
+    private var announcedDate:Long = System.currentTimeMillis()
     ///Coroutine
     private val job: Job = SupervisorJob()
     override val coroutineContext: CoroutineContext
@@ -255,17 +255,17 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
         }
     }
 
-    public fun speakText(text:String):Boolean{
-        if(isTTSAvailable){
+    private fun speakText(text:String):Boolean{
+        return if(isTTSAvailable){
             textToSpeech.speak(
                 text,
                 TextToSpeech.QUEUE_ADD,
                 ttsParams,
                 UTTERANCE_ID
             )
-            return true
+            true
         }else{
-            return false
+            false
         }
     }
     /*
@@ -318,26 +318,22 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
 
     private fun getAccurateLastLocation():Location?{
 
-        val lastLocations: List<Location>
-
-        if(Build.VERSION.SDK_INT > 25){
-            lastLocations = locationProfile.locationList.filterIndexed{
-                index, it -> index  > (locationProfile.locationList.count() - 2) &&
+        val lastLocations: List<Location> = if(Build.VERSION.SDK_INT > 25){
+            locationProfile.locationList.filterIndexed{
+                    index, it -> index  > (locationProfile.locationList.count() - 2) &&
                     it.hasBearing() && it.accuracy <= 20f && it.bearingAccuracyDegrees <= 30f
             }
         }else{
-            lastLocations = locationProfile.locationList.filterIndexed{
-                    index, it -> index  > (locationProfile.locationList.count() - 2) &&
+            locationProfile.locationList.filterIndexed{ index, it -> index  > (locationProfile.locationList.count() - 2) &&
                     it.hasBearing() && it.accuracy <= 20f
             }
         }
         Log.d(this.javaClass.name, "${getAngularRange( lastLocations.map { it.bearing })}:Range,${lastLocations.lastOrNull()}:Result")
         ///speakText("${getAngularRange( lastLocations.map { it.bearing }).toInt()}")
-        if(getAngularRange( lastLocations.map { it.bearing }) < 31f){
-            return lastLocations.lastOrNull()
-        }
-        else{
-            return null
+        return if(getAngularRange( lastLocations.map { it.bearing }) < 31f){
+            lastLocations.lastOrNull()
+        } else{
+            null
         }
 
     }

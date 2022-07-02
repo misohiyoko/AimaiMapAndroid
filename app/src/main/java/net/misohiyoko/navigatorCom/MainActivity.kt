@@ -57,7 +57,7 @@ import kotlinx.coroutines.runBlocking
 class MainActivity : AppCompatActivity() {
     companion object {
         private const val PERMISSION_REQUEST_CODE = 1234
-        public const val INTENT_DEST= "destination"
+        const val INTENT_DEST= "destination"
     }
 
     private var destinationNamed:NamedLocation = NamedLocation(0.0,0.0, "","")
@@ -190,7 +190,7 @@ fun MainScaffold(destAddress: String = "札幌市西区課長五城二兆" ,dest
     Scaffold (
         bottomBar = {
             BottomBar(selectedMenu.value){
-                value -> selectedMenu.value = value;
+                value -> selectedMenu.value = value
             }
         }
     ){
@@ -205,7 +205,7 @@ fun MainScaffold(destAddress: String = "札幌市西区課長五城二兆" ,dest
                 buttonOnClick(isNavStarted.value)
             }
         }else{
-            MapMenu(){
+            MapMenu {
                 scope.launch {
                     ///マーカークリック後、ホームの表示を変える
                     destNameRemember.value = APIController.getPlacesDetailResults(it.id).result.name
@@ -229,7 +229,7 @@ fun HomeMenu(destName:String, destAddress:String, isNavStarted:Boolean, buttonOn
                 .padding(16.dp)
                 .fillMaxWidth()
                 .height(IntrinsicSize.Min)){
-                Column() {
+                Column {
                     Row (horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically
                         ){
@@ -268,7 +268,7 @@ fun HomeMenu(destName:String, destAddress:String, isNavStarted:Boolean, buttonOn
                             textAlign = TextAlign.Start,
                             modifier = Modifier.padding(8.dp),
                             maxLines = 3,
-                            overflow = TextOverflow.Ellipsis);
+                            overflow = TextOverflow.Ellipsis)
                     }
                     Button(
                         onClick = {
@@ -382,7 +382,7 @@ fun MapMenu(markerOnClick:(NamedLocation)->Unit = {}){
                     cameraPositionState = cameraPositionState
                 ) {
                     destinationList.value.forEach { namedLocation ->
-                        namedLocation.SetMarker(){
+                        namedLocation.SetMarker {
                             markerOnClick(it)
                         }
                     }
