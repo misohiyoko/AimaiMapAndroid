@@ -332,7 +332,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
         val lastLocation = lastLocations.last()
         lastLocations = lastLocations.filter {
             it ->
-            it.distanceTo(lastLocation) < 50
+            it.distanceTo(lastLocation) < 60
         }
 
         Log.d(this.javaClass.name, "${getAngularRange( lastLocations.map { it.bearing })}:Range,${lastLocations.lastOrNull()}:Result")
