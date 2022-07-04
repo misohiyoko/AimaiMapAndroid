@@ -332,7 +332,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
         val lastLocation = lastLocations.lastOrNull() ?: return null
         val listMiddle = mutableListOf<Location>()
         for(loc in lastLocations.asReversed()){
-            if(loc.distanceTo(lastLocation) > 60f){
+            if(loc.distanceTo(lastLocation) > 25f){
                 break
             }
             listMiddle.add(loc)
