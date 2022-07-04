@@ -329,12 +329,15 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
             }
         }
         ///50mいないのみ
-        val lastLocation = lastLocations.last()
-        lastLocations = lastLocations.filter {
-            it ->
-            it.distanceTo(lastLocation) < 60
+        val lastLocation = lastLocations.lastOrNull() ?: return null
+        val listMiddle = mutableListOf<Location>()
+        for(loc in lastLocations.asReversed()){
+            if(loc.distanceTo(lastLocation) > 60f){
+                break
+            }
+            listMiddle.add(loc)
         }
-
+        lastLocations = listMiddle
         Log.d(this.javaClass.name, "${getAngularRange( lastLocations.map { it.bearing })}:Range,${lastLocations.lastOrNull()}:Result")
         ///speakText("${getAngularRange( lastLocations.map { it.bearing }).toInt()}")
         return if(getAngularRange( lastLocations.map { it.bearing }) < 31f){
