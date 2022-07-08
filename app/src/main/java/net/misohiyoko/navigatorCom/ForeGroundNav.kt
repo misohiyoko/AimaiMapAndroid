@@ -71,7 +71,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         localBroadcastManager.registerReceiver(broadcastReceiver, IntentFilter(ACTION_IS_ACTIVE))
         powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG)
+        wakeLock = powerManager.newWakeLock(PowerManager.ACQUIRE_CAUSES_WAKEUP.or(PowerManager.LOCATION_MODE_FOREGROUND_ONLY).or(PowerManager.PARTIAL_WAKE_LOCK), WAKELOCK_TAG)
         ttsParams.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 1f)
         textToSpeech = TextToSpeech(this, this)
 
@@ -116,6 +116,8 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
 
         startLocationUpdate()
 
+        wakeLock.acquire(10*60*10000L /*100 minutes*/)
+
         return START_STICKY
     }
 
@@ -144,6 +146,8 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
         )
 
     }
+
+
 
     override fun stopService(name: Intent?): Boolean {
         stopLocationUpdate()
@@ -185,12 +189,19 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
             job.cancelAndJoin()
         }
     }
+
+    private fun releaseWakeLock(){
+        if(wakeLock.isHeld){
+            wakeLock.release()
+        }
+    }
     override fun onDestroy() {
         super.onDestroy()
         stopLocationUpdate()
         shutDownTTS()
         cancelCoroutine()
         localBroadcastManager.unregisterReceiver(broadcastReceiver)
+        releaseWakeLock()
         stopSelf()
     }
     private fun stopLocationUpdate(){
@@ -206,8 +217,8 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
 
     private fun createLocationRequest() : LocationRequest?{
         val locationRequest = LocationRequest.create().apply {
-            interval = 4000
-            fastestInterval = 3000
+            interval = 2000
+            fastestInterval = 1000
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         }
         return locationRequest
@@ -234,13 +245,11 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
                         }
 
                         override fun onStart(utteranceId : String?) {
-                            wakeLock.acquire(10*60*1000L /*10 minutes*/)
+
                         }
 
                         override fun onError(utteranceId : String, errorCode : Int) {
-                            if(wakeLock.isHeld){
-                                wakeLock.release()
-                            }
+
                         }
 
                     })
