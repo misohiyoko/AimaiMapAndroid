@@ -71,7 +71,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         localBroadcastManager.registerReceiver(broadcastReceiver, IntentFilter(ACTION_IS_ACTIVE))
         powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-        wakeLock = powerManager.newWakeLock(PowerManager.ACQUIRE_CAUSES_WAKEUP.or(PowerManager.LOCATION_MODE_FOREGROUND_ONLY).or(PowerManager.PARTIAL_WAKE_LOCK), WAKELOCK_TAG)
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKELOCK_TAG)
         ttsParams.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, 1f)
         textToSpeech = TextToSpeech(this, this)
 
