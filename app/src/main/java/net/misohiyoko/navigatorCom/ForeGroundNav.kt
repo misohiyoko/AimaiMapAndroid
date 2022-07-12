@@ -217,10 +217,9 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
 
     private fun createLocationRequest() : LocationRequest?{
         val locationRequest = LocationRequest.create().apply {
-            interval = 5000
-            fastestInterval = 2500
+            interval = 2000
+            fastestInterval = 1000
             priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-            isWaitForAccurateLocation = true
 
         }///.setExpirationDuration(100000)
         return locationRequest
