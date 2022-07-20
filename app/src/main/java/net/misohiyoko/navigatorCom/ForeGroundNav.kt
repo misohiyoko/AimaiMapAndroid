@@ -270,7 +270,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
         return if(isTTSAvailable){
             textToSpeech.speak(
                 text,
-                TextToSpeech.QUEUE_ADD,
+                TextToSpeech.QUEUE_FLUSH,
                 ttsParams,
                 UTTERANCE_ID
             )
@@ -310,16 +310,18 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
             when{
 
                 System.currentTimeMillis() - announcedDate >= 30*1000-> {
-                    speakAnnouncementToDestination(accurateLocation)
                     announcedDate = System.currentTimeMillis()
+                    speakAnnouncementToDestination(accurateLocation)
+
                 }
                 System.currentTimeMillis() - announcedDate >= 15*1000->{
                     if(deltaAngleToAbs(
                             accurateLocation,
                             destination.getLocation()
-                        ) > 60){
-                        speakAnnouncementToDestination(accurateLocation)
+                        ) > 90){
                         announcedDate = System.currentTimeMillis()
+                        speakAnnouncementToDestination(accurateLocation)
+
                     }
 
                 }
@@ -329,15 +331,8 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
 
     private fun getAccurateLastLocation():Location?{
 
-        var lastLocations: List<Location> = if(Build.VERSION.SDK_INT > 25){
-            locationProfile.locationList.filterIndexed{
-                    index, it ->
-                    it.hasBearing() && it.accuracy <= 20f
-            }
-        }else{
-            locationProfile.locationList.filterIndexed{ index, it ->
-                    it.hasBearing() && it.accuracy <= 20f
-            }
+        var lastLocations = locationProfile.locationList.filter{ it ->
+            it.hasBearing()
         }
         ///50mいないのみ
         val lastLocation = lastLocations.lastOrNull() ?: return null
@@ -349,6 +344,14 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
             listMiddle.add(loc)
         }
         lastLocations = listMiddle
+        lastLocations = lastLocations.filter{
+                    it ->
+                it.hasBearing() && it.accuracy <= 30f
+        }
+
+        if(lastLocations.count() < listMiddle.count()){
+            return null
+        }
         Log.d(this.javaClass.name, "${getAngularRange( lastLocations.map { it.bearing })}:Range,${lastLocations.lastOrNull()}:Result")
         ///speakText("${getAngularRange( lastLocations.map { it.bearing }).toInt()}")
         return if(getAngularRange( lastLocations.map { it.bearing }) < 31f){
