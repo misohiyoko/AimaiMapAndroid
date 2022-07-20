@@ -35,7 +35,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
         const val ACTION_DESTINATION = "net.hiyoko.NavCom.ForeGroundNaV.Action.Destination"
         const val UTTERANCE_ID = "net.hiyoko.NavCom.ForeGroundNaV:Utterance.id"
         const val WAKELOCK_TAG = "net.hiyoko.NavCom.ForeGroundNaV:WakeLockTag"
-        fun createIntent(context: Context) = Intent(context, ForeGroundNav::class.java)
+
         /// is Navigation Active
         fun isActive(context:Context):Boolean{
             return LocalBroadcastManager.getInstance(context).sendBroadcast(Intent(ACTION_IS_ACTIVE))
@@ -83,7 +83,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
             override fun onLocationResult(p0: LocationResult) {
                 super.onLocationResult(p0)
                 p0.lastLocation.also {
-                    processGeolocationData(it);
+                    processGeolocationData(it)
                 }
             }
 
@@ -128,7 +128,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
     //@SuppressLint("MissingPermission")
     @SuppressLint("MissingPermission")
     private fun startLocationUpdate(){
-        val locationRequest = createLocationRequest() ?: return
+        val locationRequest = createLocationRequest()
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -215,7 +215,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
         }
     }
 
-    private fun createLocationRequest() : LocationRequest?{
+    private fun createLocationRequest() : LocationRequest{
         val locationRequest = LocationRequest.create().apply {
             interval = 2000
             fastestInterval = 1000
@@ -231,7 +231,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
             val locale = Locale.getDefault()
             if(textToSpeech.isLanguageAvailable(locale) >= TextToSpeech.LANG_AVAILABLE){
                 textToSpeech.apply {
-                    setLanguage(locale)
+                    language = locale
 
                     setOnUtteranceProgressListener(object : UtteranceProgressListener(){
                         override fun onDone(utteranceId : String?) {
@@ -330,7 +330,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
 
     private fun getAccurateLastLocation():Location?{
 
-        var lastLocations = locationProfile.locationList.filter{ it ->
+        var lastLocations = locationProfile.locationList.filter{
             it.hasBearing()
         }
         ///50mいないのみ
@@ -344,7 +344,7 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
         }
         lastLocations = listMiddle
         lastLocations = lastLocations.filter{
-                    it ->
+
                 it.hasBearing() && it.accuracy <= 30f
         }
 
