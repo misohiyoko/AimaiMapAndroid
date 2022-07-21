@@ -24,6 +24,7 @@ import com.google.android.gms.location.LocationRequest
 import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.coroutines.*
+import net.misohiyoko.navigatorCom.R
 import java.util.*
 import kotlin.coroutines.CoroutineContext
 
