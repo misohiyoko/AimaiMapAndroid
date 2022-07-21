@@ -1,4 +1,4 @@
-package net.misohiyoko.navigatorCom
+package net.misohiyoko.KotchCompass
 
 import android.location.Location
 import android.os.Bundle

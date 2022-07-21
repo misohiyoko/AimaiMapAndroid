@@ -1,4 +1,4 @@
-package net.misohiyoko.navigatorCom.ui.theme
+package net.misohiyoko.KotchCompass.ui.theme
 
 import androidx.compose.material.Typography
 import androidx.compose.ui.text.TextStyle

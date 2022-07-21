@@ -1,7 +1,7 @@
-package net.misohiyoko.navigatorCom
+package net.misohiyoko.KotchCompass
 
 
-import net.misohiyoko.navigatorCom.ui.theme.Gray700
+import net.misohiyoko.KotchCompass.ui.theme.Gray700
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager

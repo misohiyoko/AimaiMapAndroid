@@ -1,4 +1,4 @@
-package net.misohiyoko.navigatorCom
+package net.misohiyoko.KotchCompass
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -31,10 +31,10 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
     companion object{
         const val NOTIFICATION_ID = 10
         const val CHANNEL_ID = "primary_notification_channel"
-        const val ACTION_IS_ACTIVE = "net.hiyoko.NavCom.ForeGroundNaV.Active"
-        const val ACTION_DESTINATION = "net.hiyoko.NavCom.ForeGroundNaV.Action.Destination"
-        const val UTTERANCE_ID = "net.hiyoko.NavCom.ForeGroundNaV:Utterance.id"
-        const val WAKELOCK_TAG = "net.hiyoko.NavCom.ForeGroundNaV:WakeLockTag"
+        const val ACTION_IS_ACTIVE = "net.hiyoko.KotchCompass.ForeGroundNaV.Active"
+        const val ACTION_DESTINATION = "net.hiyoko.KotchCompass.ForeGroundNaV.Action.Destination"
+        const val UTTERANCE_ID = "net.hiyoko.KotchCompass.ForeGroundNaV:Utterance.id"
+        const val WAKELOCK_TAG = "net.hiyoko.KotchCompass.ForeGroundNaV:WakeLockTag"
 
         /// is Navigation Active
         fun isActive(context:Context):Boolean{

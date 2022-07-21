@@ -1,4 +1,4 @@
-package net.misohiyoko.navigatorCom
+package net.misohiyoko.KotchCompass
 
 sealed interface ISerializableDummy {
 }

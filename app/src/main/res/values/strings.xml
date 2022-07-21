@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">NavCom</string>
+    <string name="app_name">KotchCompass</string>
     <string name="destination">Destination</string>
     <string name="notification_title">Navigating</string>
     <string name="notification_text">Navigating your destination</string>

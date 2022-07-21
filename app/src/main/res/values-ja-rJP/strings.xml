@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">NavCom</string>
+    <string name="app_name">KotchCompass</string>
     <string name="destination">目的地</string>
     <string name="notification_title">ナビゲーション中</string>
     <string name="notification_text">目的地を案内中</string>

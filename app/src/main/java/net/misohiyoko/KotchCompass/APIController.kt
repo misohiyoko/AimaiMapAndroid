@@ -1,4 +1,4 @@
-package net.misohiyoko.navigatorCom
+package net.misohiyoko.KotchCompass
 
 import io.ktor.client.*
 import io.ktor.client.call.*
