@@ -12,8 +12,8 @@ plugins {
 
 android {
     signingConfigs {
-        debug {
-            storeFile file('C:\\Users\\genta\\IntelliJidea\\NavCom28\\Key\\androidKey.jks')
+        release {
+            storeFile file('C:\\Users\\genta\\IntelliJIDEAProjects\\NavCom\\Key\\key.jks')
             keyAlias 'key0'
             storePassword '05250122'
             keyPassword '05250122'
@@ -42,9 +42,10 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
         debug {
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
         }
     }
     compileOptions {
@@ -70,7 +71,12 @@ android {
     lintOptions {
         abortOnError true
     }
-
+    configurations {
+        all {
+            exclude module: 'httpclient'
+            exclude module: 'commons-logging'
+        }
+    }
     buildToolsVersion '30.0.3'
 }
 
