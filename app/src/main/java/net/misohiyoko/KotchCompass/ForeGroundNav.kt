@@ -24,7 +24,7 @@ import com.google.android.gms.location.LocationRequest
 import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import kotlinx.coroutines.*
-import net.misohiyoko.navigatorCom.R
+import net.misohiyoko.KotchCompass.R
 import java.util.*
 import kotlin.coroutines.CoroutineContext
 
@@ -208,12 +208,12 @@ class ForeGroundNav : Service(), TextToSpeech.OnInitListener, CoroutineScope{
     private fun stopLocationUpdate(){
 
         fusedLocationClient.removeLocationUpdates(locationCallback)
-
+/*
         this.openFileOutput(System.currentTimeMillis().toString()+"Time:"+"Destination"+destination.toString() + ".csv", Context.MODE_PRIVATE).use {
             val textToBeWrite = locationProfile.writeStringCSV()
             val bytesToBeWrite = textToBeWrite.toByteArray()
             it.write(bytesToBeWrite)
-        }
+        }*/
     }
 
     private fun createLocationRequest() : LocationRequest{
