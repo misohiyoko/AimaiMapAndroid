@@ -48,6 +48,12 @@ android {
         debug {
             signingConfig signingConfigs.release
         }
+        relDeb {
+            debuggable true
+            minifyEnabled true
+            signingConfig signingConfigs.release
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8

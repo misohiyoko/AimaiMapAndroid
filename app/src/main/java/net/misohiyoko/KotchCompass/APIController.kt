@@ -1,5 +1,6 @@
 package net.misohiyoko.KotchCompass
 
+import android.util.Log
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -66,6 +67,7 @@ object APIController {
                 )
             }
         }catch (e:Exception) {
+            Log.d(this.javaClass.name, "${e}")
             null
         }
 
