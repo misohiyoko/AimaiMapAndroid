@@ -11,4 +11,8 @@
     <string name="start_navigation">ナビを開始</string>
     <string name="stop_navigation">ナビを停止</string>
     <string name="times_direction">時の方角</string>
+    <string name="background_geolocation">バックグラウンド位置情報</string>
+    <string name="background_geolocation_nav">このアプリケーションはバックグラウンドで道案内をするためにバックグラウンドで位置情報を利用します。</string>
+    <string name="cancel">閉じる</string>
+    <string name="accept">了解</string>
 </resources>

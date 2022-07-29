@@ -43,6 +43,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
+import androidx.fragment.app.DialogFragment
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -55,7 +56,7 @@ import kotlinx.coroutines.runBlocking
 import net.misohiyoko.KotchCompass.R
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(),LocationDialogFragment.LocationDialogListener {
     companion object {
         private const val PERMISSION_REQUEST_CODE = 1234
         const val INTENT_DEST= "destination"
@@ -133,8 +134,11 @@ class MainActivity : AppCompatActivity() {
                         if(backGroundGPSApproved == PackageManager.PERMISSION_GRANTED){
                             ///BackGroundGLocation Approved
                         }else{
-                            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
-                            PERMISSION_REQUEST_CODE)
+
+                            val dialogFragment = LocationDialogFragment()
+                            //Show users warning of background location
+                            dialogFragment.show(supportFragmentManager, "background_gps")
+
                         }
                     }
                 }
@@ -156,6 +160,15 @@ class MainActivity : AppCompatActivity() {
 
 
 
+    }
+
+    override fun onDialogPositiveClick(dialog: DialogFragment) {
+        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+        PERMISSION_REQUEST_CODE)
+    }
+
+    override fun onDialogNegativeClick(dialog: DialogFragment) {
+        TODO("Not yet implemented")
     }
 
     private fun createNotificationChannel(){

@@ -10,4 +10,8 @@
     <string name="start_navigation">Start</string>
     <string name="stop_navigation">Stop</string>
     <string name="times_direction"></string>
+    <string name="background_geolocation">Background gps</string>
+    <string name="background_geolocation_nav">This application use the background geolocation to navigate in background.</string>
+    <string name="cancel">Cancel</string>
+    <string name="accept">Accept</string>
 </resources>
